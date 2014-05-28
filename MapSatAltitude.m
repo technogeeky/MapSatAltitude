@@ -160,9 +160,9 @@ max_width = 180; %maximum swath width; if we're getting larger than this then th
 
 surfscale = max(600000 / R,1);		% this, as noted below, gives a boost to
 					% fov for bodies smaller than Kerbin
-hSCAN_FOV = (S.FOV * sqrt(surfscale)) / 2;
+hSCAN_FOV = (S.FOV * 1) / 2;
 
-hFOV = (hSCAN_FOV/180*pi); % New lasers can spread up to 8 degrees on either side
+hFOV = (hSCAN_FOV/180*pi);
 
 scan_res = 200;  % New lasers have 200 points in a line that spread evenly based on ground distance
 
@@ -299,12 +299,12 @@ planetRotPerPeriod = (360./planetDay)*orbitalPeriods;	% FIXME: unused
 %% FIXME: Remove this once we know the new method works.
 %% 	This method assumes hFOV is fixed for all altitudes
 
-S1 = ((alts+R).*cot(hFOV)+sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
-S2 = ((alts+R).*cot(hFOV)-sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
+%S1 = ((alts+R).*cot(hFOV)+sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
+%S2 = ((alts+R).*cot(hFOV)-sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
 
 
-%S1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
-%S2 = ((alts+R).*cot(hFOV_at_altitude)-sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
+S1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
+S2 = ((alts+R).*cot(hFOV_at_altitude)-sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
 S  = min([S1;S2]);
 
 

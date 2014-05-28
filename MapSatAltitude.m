@@ -151,15 +151,15 @@ max_width = 180; %maximum swath width; if we're getting larger than this then th
 				%at which point you don't need this tool anymore
 
 
-%swath_poly = [19.0124437348151     0.304525138734149]; %experimentally-derived polynomial for swath width
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% We need to pick the correct FOV, and for laziness I have stored a HalfFov too (why does this need half fov?)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%surfscale = max(600000 / R,1);		% this, as noted below, gives a boost to
+
+%% this isn't really correct, because FOV is altitude-depdendent.
+
+surfscale = max(600000 / R,1);		% this, as noted below, gives a boost to
 					% fov for bodies smaller than Kerbin
-surfscale = 1;
 hSCAN_FOV = (S.FOV * sqrt(surfscale)) / 2;
 
 hFOV = (hSCAN_FOV/180*pi); % New lasers can spread up to 8 degrees on either side
@@ -181,24 +181,8 @@ disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	FIXME: Is this maxSwathAlt likely to be reached?
 %%%		For the Mun and for SAR, this is 1.12e8 meters.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%	NOTE:
-%%%	Internally to SCANsat, the calculation for FOV would look like this:
-%%%	2 * (749999 meters / 750000 meters) * sqrt(600000 meters/200000 meters)
-%%%	^    ^^^^^^^^^^^^^   ^^^^^^^^^^^^^         ^^^^^^^^^^^^^ ^^^^^^^^^^^^^
-%%%	fov   	altitude	"best"		1 Kerbin radius	  parentBody radius
-%%%	    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-%%%		^ this part penalizes you		^ this part gives you a boost
-%%%		  for being between minimum		scanning a smaller body than
-%%%		  and best altitude			Kerbin, and cuts off when = 1
-%%%		  and cuts when = 1			* also, this will probably need
-%%%							  to be changed to support (RSS)
-%%%
-%%%	See SCANcontroller.cs for details.
-%%%
 
 maxSwathAlt  = R*cot(hFOV)-R;
-%maxSwathAlt = R*(max_width-swath_poly(2))/swath_poly(1); %maximum swath width altitude
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Here we (evidently) pick the minimum altitude by looking at:
@@ -239,6 +223,39 @@ else
 end
 
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%	NOTE:
+%%%	Internally to SCANsat, the calculation for FOV would look like this:
+%%%	2 * (749999 meters / 750000 meters) * sqrt(600000 meters/200000 meters)
+%%%	^    ^^^^^^^^^^^^^   ^^^^^^^^^^^^^         ^^^^^^^^^^^^^ ^^^^^^^^^^^^^
+%%%	fov   	altitude	"best"		1 Kerbin radius	  parentBody radius
+%%%	    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+%%%		^ this part penalizes you		^ this part gives you a boost
+%%%		  for being between minimum		scanning a smaller body than
+%%%		  and best altitude			Kerbin, and cuts off when = 1
+%%%		  and cuts when = 1			* also, this will probably need
+%%%							  to be changed to support (RSS)
+%%%
+%%%	See SCANcontroller.cs for details.
+%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% This is a table of half FOVs at each altitude.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+i = 1;
+
+for thisAlt = alts
+    if (thisAlt < S.AltitudeIdeal)
+	hFOV_at_altitude(i) = ((S.FOV * (thisAlt / S.AltitudeIdeal) * sqrt(surfscale)) / 2) / 180 * pi;
+    else
+	hFOV_at_altitude(i) = ((S.FOV * sqrt(surfscale)) / 2) / 180 * pi;
+    endif;
+    i++;
+endfor;
+
 disp(sprintf('\nScan line resolution: %d',scan_res));
 disp(sprintf('Field of view: %f deg',hFOV*2*180/pi));
 disp(sprintf('Sidelap range: %f - %f',minthresh,maxthresh));
@@ -278,12 +295,16 @@ orbitalPeriods = oPeriod2(alts,R,GM);
 
 planetRotPerPeriod = (360./planetDay)*orbitalPeriods;	% FIXME: unused
 
-														%swathWidths = 15*alts/R;
-														%experimentally-defined swath widths
-														%swathWidths = polyval([19.0124437348151     0.304525138734149],alts/R);
+
+%% FIXME: Remove this once we know the new method works.
+%% 	This method assumes hFOV is fixed for all altitudes
 
 S1 = ((alts+R).*cot(hFOV)+sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
 S2 = ((alts+R).*cot(hFOV)-sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
+
+
+%S1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
+%S2 = ((alts+R).*cot(hFOV_at_altitude)-sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
 S  = min([S1;S2]);
 
 
@@ -292,21 +313,10 @@ swathWidthsCorr = swathWidths;			%% FIXME: presumably this means Corrected, but
 						%% 	in that case, swathWidths should *never* be used again
 						%% 	(and it is. both are used.)
 
-
-														%swathWidthsCorrParameters = [2.5032e-011  1.5976e-005      2.2617]; %kerbin-specific tested ones
-														%swathWidthsCorr = polyval(swathWidthsCorrParameters,alts);
-														%swathWidthsC1 = swathWidths.*orbitalPeriods./planetDay; %this corrects for 'planet smear'
-														%swathWidthsC2 = swathWidths*cosd(inclination); %this corrects for inclination skew
-														%swathWidthsC3 = abs(swathWidths./sind(inclination).*(cosd(inclination)-orbitalPeriods./planetDay)); %3rd attempt at modelling skew&smear
-														%swathWidthsCorr = swathWidths+swathWidthsC1+swathWidthsC2+swathWidthsC3;
-														%swathWidthsCorr = swathWidths+swathWidthsC3;
-
-
 tgtInclination = acosd(orbitalPeriods./planetDay);
 orbitRats = orbitalPeriods./planetDay;
 
 AorbitRats = (orbitRats+1)/2;
-%mop = mod(orbitalPeriods,planetDay);			% FIXME: unused
 
 [orbitRatN orbitRatD] = rat(AorbitRats,rational_resolution);
 
@@ -453,8 +463,8 @@ scanTime = orbitalPeriods.*orbitRatD/2; % divided by 2 because there's two sides
 disp(sprintf('\n Number of Zones: %d\n',length(zoneStart)));
 disp('---------------------------');
 disp(sprintf('%s, Sidelap %.4g - %.4g:',planet, minthresh, maxthresh));
-disp('                      SMA         Altitude         Inclination Orbital   Time to Scan       Swath    Resolution');
-disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff     Width   (deg)   (km) ');
+disp('                      SMA         Altitude         Inclination Orbital   Time to Scan        Eff.   Swath    Resolution');
+disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff      FOV     Width   (deg)   (km) ');
 disp('========================================================================================================');
 disp('');
 
@@ -521,6 +531,7 @@ for i = 1:length(zoneStart)
 	[OPH0 OPM0] = sec2hm(orbitalPeriods(minalti));
 	sw = swathWidths(altii);
 
+	dispfov = 2 * (hFOV_at_altitude(altii) * 180 / pi);
 	sma = meanta + R;
 
 	resd = sw/scan_res;  % Scan lines are spaced evenly along the ground
@@ -535,6 +546,7 @@ for i = 1:length(zoneStart)
 	qqq = [qqq sprintf('%3dh %04.1fm ',round(OPH0),OPM0)];
 	qqq = [qqq sprintf('%5dh %04.1fm ',round(H0),M0)];
 	qqq = [qqq sprintf('+%04.1fm  ',Md)];
+	qqq = [qqq sprintf('%3.2f ', dispfov)];
 	qqq = [qqq sprintf('%5.1f ',sw)];
 	qqq = [qqq sprintf(' %4.4f ',resd)];
 	if resm < 100

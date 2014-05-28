@@ -463,16 +463,17 @@ scanTime = orbitalPeriods.*orbitRatD/2; % divided by 2 because there's two sides
 disp(sprintf('\n Number of Zones: %d\n',length(zoneStart)));
 disp('---------------------------');
 disp(sprintf('%s, Sidelap %.4g - %.4g:',planet, minthresh, maxthresh));
-disp('                      SMA         Altitude         Inclination Orbital   Time to Scan        Eff.   Swath    Resolution');
-disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff      FOV     Width   (deg)   (km) ');
-disp('========================================================================================================');
-disp('');
+%disp('                      SMA         Altitude         Inclination Orbital   Time to Scan        Eff.   Swath    Resolution');
+%disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff      FOV     Width   (deg)   (km) ');
+
+disp('Zone | UEC | TEC | Sidelap | SMA | Altitude +/- Range | Inclination | Orbital Period | Time to Scan | Eff. FOV | Swath Width | Resolution (deg) | Resolution (km)');
+disp(' --- | ----| --- | ------- | --- | ------------------ | ----------- | -------------- | ------------ | -------- | ----------- | ---------------- | ---------------');
 
 %figure
 %hold on
 for i = 1:length(zoneStart)
 	%disp(sprintf('\n\nZone %d\t',i);
-	qqq = sprintf('%3i ',i);
+	qqq = sprintf('%3i |',i);
 	
 	zi 	= zoneStart(i);
 	zk 	= zoneEnd(i);
@@ -538,17 +539,17 @@ for i = 1:length(zoneStart)
 	resm = resd*R*pi/180;
 	
 	%print min-mean-max altitude  min-mean-max time
-	qqq = [qqq sprintf('%4d/%-4d (%4.2f)  ', orbitRatN(minalti), orbitRatD(minalti), orbitRatD(minalti)./idealThreshold(minalti))];
-	qqq = [qqq sprintf('%7.3f km  ',sma/1000)];
+	qqq = [qqq sprintf('%4d | %-4d | (%4.2f) |', orbitRatN(minalti), orbitRatD(minalti), orbitRatD(minalti)./idealThreshold(minalti))];
+	qqq = [qqq sprintf('%7.3f km |',sma/1000)];
 	qqq = [qqq sprintf('%7.3f ',meanta/1000)];
-	qqq = [qqq sprintf(' +/- %5.2f km  ',altRa/1000)];
-	qqq = [qqq sprintf('%05.2f ', tgtInclination(altii))];
-	qqq = [qqq sprintf('%3dh %04.1fm ',round(OPH0),OPM0)];
+	qqq = [qqq sprintf(' +/- %5.2f km  |',altRa/1000)];
+	qqq = [qqq sprintf('%05.2f |', tgtInclination(altii))];
+	qqq = [qqq sprintf('%3dh %04.1fm |',round(OPH0),OPM0)];
 	qqq = [qqq sprintf('%5dh %04.1fm ',round(H0),M0)];
-	qqq = [qqq sprintf('+%04.1fm  ',Md)];
-	qqq = [qqq sprintf('%3.2f ', dispfov)];
-	qqq = [qqq sprintf('%5.1f ',sw)];
-	qqq = [qqq sprintf(' %4.4f ',resd)];
+	qqq = [qqq sprintf('+%04.1fm  |',Md)];
+	qqq = [qqq sprintf('%3.2f |', dispfov)];
+	qqq = [qqq sprintf('%5.1f |',sw)];
+	qqq = [qqq sprintf(' %4.4f |',resd)];
 	if resm < 100
 		qqq = [qqq sprintf(' %#2.2f m', resm)];
 	else

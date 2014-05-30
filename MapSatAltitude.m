@@ -491,7 +491,7 @@ disp(sprintf('[size=4][b]%s [%s][/B][/SIZE][spoiler=Show %s Orbits][code]\n', Na
 disp(sprintf('%s, Sidelap %.4g - %.4g:',planet, minthresh, maxthresh));
 disp('                      SMA         Altitude         Inclination Orbital   Time to Scan        Eff.   Swath    Resolution');
 disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff      FOV     Width   (deg)   (km) ');
-disp('========================================================================================================');
+disp('==========================================================================================================================');
 disp('');
 
 %figure

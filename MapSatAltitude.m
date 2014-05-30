@@ -19,6 +19,8 @@ if isempty(S)
 	return
 end
 
+ScannerName = S.Name;
+
 disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,7 +40,21 @@ end
 R 	  = P.Radius;
 planetDay = P.Day;
 GM 	  = P.GM;
+Name	  = P.Name;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%	2. a. If we are on a RSS planet, use Earth-scaled surface scales
+%%%		(instead of Kerbin-scaled ones)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+switch (Name)
+	case { "Earth", "Moon", "Jupiter", "Deimos", "Phobos" }
+		surfscale = max (6371000 / R,1);
+		InRSS = true;
+	otherwise
+		surfscale = max(600000 / R,1);
+		InRSS = false;
+endswitch
+		
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	3-4. How much sidelap (min, max) do we want?
@@ -96,13 +112,21 @@ alt_stepmul = 1;
 %%%		resolution was required to get any results!
 %%%		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-inp_res = ...
-	input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
-resDisc = 'High';
+
+switch (InRSS)
+	case false
+		inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
+		resDisc = 'High';
+		rational_resolution = 1e-4;
+	case true
+		inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
+		resDisc = 'VeryHi';
+		rational_resolution = 1e-5;
+		alt_stepmul = 1/2;
+end
 
 if isempty(inp_res)
-	rational_resolution = 1e-4;
-	resDisc = 'High';
+	%% nothing needed here anymore
 else
 	if 	strcmpi(inp_res(1),'h')
 		rational_resolution = 1e-4;
@@ -158,8 +182,8 @@ max_width = 180; %maximum swath width; if we're getting larger than this then th
 
 %% this isn't really correct, because FOV is altitude-depdendent.
 
-surfscale = max(600000 / R,1);		% this, as noted below, gives a boost to
-					% fov for bodies smaller than Kerbin
+
+
 hSCAN_FOV = (S.FOV * 1) / 2;
 
 hFOV = (hSCAN_FOV/180*pi);
@@ -462,6 +486,8 @@ scanTime = orbitalPeriods.*orbitRatD/2; % divided by 2 because there's two sides
 
 disp(sprintf('\n Number of Zones: %d\n',length(zoneStart)));
 disp('---------------------------');
+
+disp(sprintf('[size=4][b]%s [%s][/B][/SIZE][spoiler=Show %s Orbits][code]\n', Name, ScannerName, ScannerName));
 disp(sprintf('%s, Sidelap %.4g - %.4g:',planet, minthresh, maxthresh));
 disp('                      SMA         Altitude         Inclination Orbital   Time to Scan        Eff.   Swath    Resolution');
 disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff      FOV     Width   (deg)   (km) ');
@@ -594,7 +620,7 @@ if sppmin < 25; %gives us a 25 second window to look
 	disp('');
 end
 
-
+disp('[/code][/spoiler]');
 disp('');
 
 %figure

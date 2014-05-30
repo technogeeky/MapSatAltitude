@@ -496,7 +496,7 @@ disp('');
 
 %figure
 %hold on
-for i = 1:length(zoneStart)
+for i = flipdim(1:length(zoneStart),2)
 	%disp(sprintf('\n\nZone %d\t',i);
 	qqq = sprintf('%3i ',i);
 	

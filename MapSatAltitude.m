@@ -31,7 +31,7 @@ for i = 1:nargin
 			expect = "scanner";
 		case "--sidelap-min"
 			expect = "sidelap-min";
-		case "--sidelap--max"
+		case "--sidelap-max"
 			expect = "sidelap-max";
 		case {"-r","--resolution"}
 			expect = "resolution";
@@ -58,29 +58,24 @@ for i = 1:nargin
 			disp("Planets and Scanners must be in their respective files.");
 			disp("Resolution must be one of: [Ultra, VeryHi, High, Low].");
 			disp("Output Style must be one of: [Plain, Forum, Markdown].");
+			disp("NOTE: In order to have no STDIN input requests, you must specify all of:");
+			disp("  planet, scanner, resolution, sidelap-min, sidelap-max");
 			quit;
 		otherwise
 			switch (expect)
 				case "planet"
-					disp('expected a planet');
 					argv_planet = args{i};
 				case "scanner"
-					disp('expected a scanner');
 					argv_scanner = args{i};
 				case "sidelap-min"
-					disp('expected a sidelap-min');
 					argv_minthresh = args{i};
 				case "sidelap-max"
-					disp('expected a sidelap-max');
 					argv_maxthresh = args{i};
 				case "resolution"
-					disp('expected a resolution');
 					argv_resolution = args{i};
 				case "output-style"
-					disp('expected an output-style');
 					argv_style = args{i};
 				case "plots"
-					disp('expected a plots setting');
 					argv_plot = args{i};
 				otherwise
 					disp('--help? no help for you!');
@@ -294,8 +289,8 @@ hFOV = (hSCAN_FOV/180*pi);
 
 scan_res = 200;  % New lasers have 200 points in a line that spread evenly based on ground distance
 
-disp('');
-disp('');
+if (!quiet) disp(''); endif;
+if (!quiet) disp(''); endif;
 
 
 [dayh daym days] = sec2hms(planetDay);
@@ -424,7 +419,7 @@ orbitalPeriods = oPeriod2(alts,R,GM);
 planetRotPerPeriod = (360./planetDay)*orbitalPeriods;	% FIXME: unused
 
 
-sS1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
+S1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
 S2 = ((alts+R).*cot(hFOV_at_altitude)-sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
 S  = min([S1;S2]);
 

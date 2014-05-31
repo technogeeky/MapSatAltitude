@@ -1,3 +1,4 @@
+#!/usr/bin/octave -qf
 clear all
 close all
 
@@ -5,11 +6,102 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+quiet = false;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%	0. Process command-line arguments
+%%%
+%%%		This section does a two-stage pass over command line arguments.
+%%%		If an argument is found (in short or long form), expect is set to
+%%%			*which* argument is expected next.
+%%%		Then, the argument is caught with the outer otherwise case and exported
+%%%			to a variable like argv_planet, which is existance-checked later
+%%%			to override requesting information on STDIN.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+expect = "";
+args = argv();
+for i = 1:nargin
+	%% double arguments
+	switch (args{i})
+		case {"-p", "--planet"}
+			expect = "planet";
+		case {"-s", "--scanner"}
+			expect = "scanner";
+		case "--sidelap-min"
+			expect = "sidelap-min";
+		case "--sidelap--max"
+			expect = "sidelap-max";
+		case {"-r","--resolution"}
+			expect = "resolution";
+		case {"-os","--output-style"}
+			expect = "output-style";
+		case {"-p","--plots"}
+			expect = "plots";
+		case {"-q","--quiet"}
+			expect = "";
+			quiet = true;
+		case {"-h","--help"}
+			disp("Usage: ./MapSatAltitude <flags>; where flags are:");
+			disp("\tShort Form	\tLong Form          	\tFlag Description");
+			disp("\t--------------------------------------------------------------------------------------------------");
+			disp("\t-p <...>	\t--planet <...>		\tspecify planet");
+			disp("\t-s <...>	\t--scanner <...>		\tspecify scanner");
+			disp("\t-r <...>	\t--resolution <...>	\tspecify resolution");
+			disp("\t        	\t--sidelap-min <...>	\tspecify minimum sidelap (defaults: 1.00 -- none)");
+			disp("\t        	\t--sidelap-max <...>	\tspecify maximum sidelap (defaults: 1.25)");
+			disp("\t-q      	\t--quiet            	\tonly output the table (not the inputs)");
+			disp("\t-p      	\t--plots            	\tgenerate plots (disabled)");
+			disp("\t-os <...>	\t--output-style <...>	\tchange formatting for output (disabled)");
+			disp("\t---------------------------------------------------------------------------------------------------");
+			disp("Planets and Scanners must be in their respective files.");
+			disp("Resolution must be one of: [Ultra, VeryHi, High, Low].");
+			disp("Output Style must be one of: [Plain, Forum, Markdown].");
+			quit;
+		otherwise
+			switch (expect)
+				case "planet"
+					disp('expected a planet');
+					argv_planet = args{i};
+				case "scanner"
+					disp('expected a scanner');
+					argv_scanner = args{i};
+				case "sidelap-min"
+					disp('expected a sidelap-min');
+					argv_minthresh = args{i};
+				case "sidelap-max"
+					disp('expected a sidelap-max');
+					argv_maxthresh = args{i};
+				case "resolution"
+					disp('expected a resolution');
+					argv_resolution = args{i};
+				case "output-style"
+					disp('expected an output-style');
+					argv_style = args{i};
+				case "plots"
+					disp('expected a plots setting');
+					argv_plot = args{i};
+				otherwise
+					disp('--help? no help for you!');
+			end
+	end
+end
+
+		
+	
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	1. What scanner are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-scanner = input('Scanner name? ', 's');
+switch (exist("argv_scanner"))
+	case false
+		scanner = input('Scanner name? ', 's');
+	case true
+		scanner = argv_scanner;
+end
+
 scanners = parseScannerInfo();
 S = getScanner(scanners,scanner);
 
@@ -21,14 +113,18 @@ end
 
 ScannerName = S.Name;
 
-disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName));
+if (!quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); endif;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	2. What planet are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-planet = input('Planet name? ','s');
+switch (exist("argv_planet"))
+	case false
+		planet = input('Planet name? ','s');
+	case true
+		planet = argv_planet;
+end
 
 planets = parsePlanetInfo();
 P = getPlanet(planets,planet);
@@ -70,8 +166,14 @@ endswitch
 %%%	1. Get minimum sidelap from user; and,
 %%%	2. Default to (1.00) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-inp_thresh = ...
-	input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
+
+switch (exist("argv_minthresh"))
+	case false
+		inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
+	case true
+		inp_thresh = argv_minthresh;
+end
+
 inp_thres2 = sscanf(inp_thresh,'%f');
 
 if isempty(inp_thres2) || inp_thres2 < 0
@@ -84,8 +186,14 @@ end
 %%%	1. Get maximum sidelap from user; and,
 %%%	2. Default to (1.25) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-inp_thresh = ...
-	input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
+
+switch (exist("argv_maxthresh"))
+	case false
+		inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
+	case true
+		inp_thresh = argv_maxthresh;
+end
+
 inp_thres2 = sscanf(inp_thresh,'%f');
 
 if isempty(inp_thres2) || inp_thres2 < 0
@@ -113,17 +221,23 @@ alt_stepmul = 1;
 %%%		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (InRSS)
+switch (exist("argv_resolution"))
 	case false
-		inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
-		resDisc = 'High';
-		rational_resolution = 1e-4;
+		switch (InRSS)
+			case false
+				inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
+				resDisc = 'High';
+				rational_resolution = 1e-4;
+			case true
+				inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
+				resDisc = 'VeryHi';
+				rational_resolution = 1e-5;
+			alt_stepmul = 1/2;
+		end
 	case true
-		inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
-		resDisc = 'VeryHi';
-		rational_resolution = 1e-5;
-		alt_stepmul = 1/2;
+		inp_res = argv_resolution;
 end
+
 
 if isempty(inp_res)
 	%% nothing needed here anymore
@@ -146,22 +260,12 @@ else
 		rational_resolution = 1e-4;
 	end
 end
-disp(sprintf('Rational Number Numerical Resolution: %s (%.2e)\n',resDisc,rational_resolution));
+if (!quiet) disp(sprintf('Rational Number Numerical Resolution: %s (%.2e)\n',resDisc,rational_resolution)); endif;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	FIXME: Incliation Setting was commented out already.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% inp_incl = input('Inclination? (Default is 90. Press Enter to skip) : ','s');
-% inp_incl = sscanf(inp_incl,'%f');
-% if isempty(inp_incl) || inp_incl < 0
-	% inclination = 90; %1.25;
-% else
-	% inclination = inp_incl;
-% end
-%inclination = 90;
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	FIXME: Does resonanceLimit actually do anything?
@@ -197,9 +301,9 @@ disp('');
 [dayh daym days] = sec2hms(planetDay);
 syncorbit = oHeight2(planetDay,R,GM);
 
-disp(sprintf('\nPlanet:     %s\nRadius:     %d km',planet,R/1000));
-disp(sprintf('Sync.Orbit: %.2f km\nSOI:        %.2f km',syncorbit/1000,P.SOI/1000));
-disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days));
+if (!quiet) disp(sprintf('\nPlanet:     %s\nRadius:     %d km',planet,R/1000)); endif;
+if (!quiet) disp(sprintf('Sync.Orbit: %.2f km\nSOI:        %.2f km',syncorbit/1000,P.SOI/1000)); endif;
+if (!quiet) disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days)); endif;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -280,10 +384,10 @@ for thisAlt = alts
     i++;
 endfor;
 
-disp(sprintf('\nScan line resolution: %d',scan_res));
-disp(sprintf('Field of view: %f deg',hFOV*2*180/pi));
-disp(sprintf('Sidelap range: %f - %f',minthresh,maxthresh));
-disp(sprintf('Altitude Range: %.1f km - %.1f km in %.1f m steps (%i possible zones)',minAlt/1000,maxAlt/1000,alt_stepsize,numel(alts)));
+if (!quiet) disp(sprintf('\nScan line resolution: %d',scan_res)); endif;
+if (!quiet) disp(sprintf('Field of view: %f deg',hFOV*2*180/pi)); endif;
+if (!quiet) disp(sprintf('Sidelap range: %f - %f',minthresh,maxthresh)); endif;
+if (!quiet) disp(sprintf('Altitude Range: %.1f km - %.1f km in %.1f m steps (%i possible zones)',minAlt/1000,maxAlt/1000,alt_stepsize,numel(alts))); endif;
 
 qqq = sprintf('Minimum altitude chosen because:\n\t');
 switch minAltReason
@@ -295,8 +399,8 @@ switch minAltReason
 %		qqq = [qqq sprintf('because of a hardcoded limit of %.2f m. deal with it. ',10e3)];
 
 end
-disp(qqq);
-disp('');
+if (!quiet) disp(qqq); endif;
+if (!quiet) disp(''); endif;
 
 
 qqq = sprintf('Maximum Altitude chosen because:\n\t');
@@ -310,8 +414,8 @@ switch maxAltReason
 	case {4}
 		qqq = [qqq sprintf('maximum swath width of %d degrees at %.2f km', max_width, maxSwathAlt/1000)];
 end
-disp(qqq);
-disp('');
+if (!quiet) disp(qqq); endif;
+if (!quiet) disp(''); endif;
 
 orbitalPeriods = oPeriod2(alts,R,GM);
 
@@ -320,22 +424,15 @@ orbitalPeriods = oPeriod2(alts,R,GM);
 planetRotPerPeriod = (360./planetDay)*orbitalPeriods;	% FIXME: unused
 
 
-%% FIXME: Remove this once we know the new method works.
-%% 	This method assumes hFOV is fixed for all altitudes
-
-%S1 = ((alts+R).*cot(hFOV)+sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
-%S2 = ((alts+R).*cot(hFOV)-sqrt(R.^2.*cot(hFOV).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV).^2);
-
-
-S1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
+sS1 = ((alts+R).*cot(hFOV_at_altitude)+sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
 S2 = ((alts+R).*cot(hFOV_at_altitude)-sqrt(R.^2.*cot(hFOV_at_altitude).^2-alts.^2-2.*alts.*R))./(1+cot(hFOV_at_altitude).^2);
 S  = min([S1;S2]);
 
 
 swathWidths = (asin(S./R)*2)/pi*180;
 swathWidthsCorr = swathWidths;			%% FIXME: presumably this means Corrected, but
-						%% 	in that case, swathWidths should *never* be used again
-						%% 	(and it is. both are used.)
+										%% 	in that case, swathWidths should *never* be used again
+										%% 	(and it is. both are used.)
 
 tgtInclination = acosd(orbitalPeriods./planetDay);
 orbitRats = orbitalPeriods./planetDay;
@@ -484,8 +581,8 @@ scanTime = orbitalPeriods.*orbitRatD/2; % divided by 2 because there's two sides
 
 
 
-disp(sprintf('\n Number of Zones: %d\n',length(zoneStart)));
-disp('---------------------------');
+if (!quiet) disp(sprintf('\n Number of Zones: %d\n',length(zoneStart))); endif;
+if (!quiet) disp('---------------------------'); endif;
 
 disp(sprintf('[size=4][b]%s [%s][/B][/SIZE][spoiler=Show %s Orbits][code]\n', Name, ScannerName, ScannerName));
 disp(sprintf('%s, Sidelap %.4g - %.4g:',planet, minthresh, maxthresh));

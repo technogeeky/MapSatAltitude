@@ -741,17 +741,17 @@ for i = flipdim(1:length(zoneStart),2)
 		   %qqq = [qqq sprintf('%4i',			i)];
 			qqq = [qqq sprintf('%5d',			orbitRatN(minalti))];
 			qqq = [qqq sprintf(',%5d',			orbitRatD(minalti))];
-			qqq = [qqq sprintf(',(%4.2f)', 		orbitRatD(minalti)./idealThreshold(minalti))];
+			qqq = [qqq sprintf(',%4.2f', 		orbitRatD(minalti)./idealThreshold(minalti))];
 		   %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
 			qqq = [qqq sprintf(',%8.3f km',		meanta/1000)];
-			qqq = [qqq sprintf(',+/- %3.2f km',	altRa/1000)];
-			qqq = [qqq sprintf(',(%03.2f°)',	tgtInclination(altii))];
+			qqq = [qqq sprintf(',%3.2f km',	altRa/1000)];
+			qqq = [qqq sprintf(',%03.2f°',	tgtInclination(altii))];
 			qqq = [qqq sprintf(',%3dh %04.1fm',	round(OPH0),OPM0)];
 			qqq = [qqq sprintf(',%5dh %04.1fm',	round(H0),M0)];
-			qqq = [qqq sprintf(',+/- %04.1fm',	Md)];
-			qqq = [qqq sprintf(',(%3.1f°)',		dispfov)];
+			qqq = [qqq sprintf(',%04.1fm',	Md)];
+			qqq = [qqq sprintf(',%3.1f°',		dispfov)];
 			qqq = [qqq sprintf(',% 3.0f m',		sw)];
-			qqq = [qqq sprintf(',(%03.2f°)',	resd)];
+			qqq = [qqq sprintf(',%03.2f°',	resd)];
 
 			if resm < 100
 				qqq = [qqq sprintf(',%#2.2f m', resm)];

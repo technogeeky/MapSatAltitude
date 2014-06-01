@@ -636,7 +636,7 @@ switch (argv_style)
 		%%%%%%    23    40 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
 		%%%%%%    25    44 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
 	case "csv"
-		disp('UEQx,EQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
+		disp('Scanner,UEQx,EQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
 	case "markdown"
 		disp('  UEQx | EQx|Sidelap| Altitude |    Error  | Inc.    | O. Period| Scan Time |    Error| FOV  |Swath|Res (°)|Res (m)');
 		disp('-------|----|-------|----------|-----------|---------|----------|-----------|---------|------|-----|-------|--------');		%%%%%%    17    29 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
@@ -739,7 +739,8 @@ for i = flipdim(1:length(zoneStart),2)
 		case {"csv"}
 			qqq = "";
 		   %qqq = [qqq sprintf('%4i',			i)];
-			qqq = [qqq sprintf('%5d',			orbitRatN(minalti))];
+		    qqq = [qqq sprintf('%-5s',			ScannerName)];			% this is different
+			qqq = [qqq sprintf(',%5d',			orbitRatN(minalti))];
 			qqq = [qqq sprintf(',%5d',			orbitRatD(minalti))];
 			qqq = [qqq sprintf(',%4.2f', 		orbitRatD(minalti)./idealThreshold(minalti))];
 		   %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];

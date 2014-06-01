@@ -8,6 +8,8 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 quiet = false;				%% defaults to false
 argv_style = "forum";		%% defaults to forum output
+tables_only = false;		%% usually, we accompany our tables with extra info.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	0. Process command-line arguments
@@ -30,17 +32,26 @@ for i = 1:nargin
 			expect = "planet";
 		case {"-s", "--scanner"}
 			expect = "scanner";
-		case "--sidelap-min"
+		case {"-smin","--sidelap-min"}
 			expect = "sidelap-min";
-		case "--sidelap-max"
+		case {"-smax","--sidelap-max"}
 			expect = "sidelap-max";
 		case {"-r","--resolution"}
 			expect = "resolution";
 		case {"-os","--output-style"}
 			expect = "output-style";
-		case "--plots"
+		case {"-pl","--plots"};
 			expect = "";
 			argv_plots = true;
+		case {"-pp","--printplots"}
+			expect = "";
+			set (0, "defaultaxesfontname", "Helvetica");	
+			set (0, "defaulttextfontname", "Helvetica");
+				%% this is REQUIRED for --pp
+			argv_printplots = true;
+		case {"-to","--tables-only"}
+			expect = "";
+			tables_only = true;
 		case {"-q","--quiet"}
 			expect = "";
 			quiet = true;
@@ -51,11 +62,18 @@ for i = 1:nargin
 			disp("\t-p <...>	\t--planet <...>		\tspecify planet");
 			disp("\t-s <...>	\t--scanner <...>		\tspecify scanner");
 			disp("\t-r <...>	\t--resolution <...>	\tspecify resolution");
-			disp("\t        	\t--sidelap-min <...>	\tspecify minimum sidelap (defaults: 1.00 -- none)");
-			disp("\t        	\t--sidelap-max <...>	\tspecify maximum sidelap (defaults: 1.25)");
-			disp("\t-q      	\t--quiet            	\tonly output the table (not the inputs)");
+			disp("\t-smin <...>	\t--sidelap-min <...>	\tspecify minimum sidelap");
+			disp("\t-smax     	\t--sidelap-max <...>	\tspecify maximum sidelap");
+			disp("\t---------------------------------------------------------------------------------------------------");
 			disp("\t           	\t--plots            	\tgenerate all plots)");
+			disp("\t-pp <...>	\t--printplots      	\tprint all plots to a suitably-named file");
+			disp("\t---------------------------------------------------------------------------------------------------");
 			disp("\t-os <...>	\t--output-style <...>	\tchange formatting for output (disabled)");
+			disp("\t-to      	\t--tables-only        	\tonly output the table (not the inputs)");
+			disp("\t-q      	\t--quiet      			\tquiet mode: implies:");
+			disp("\t        	\t             			\t			  	-smin 1.00");
+			disp("\t        	\t      	   			\t			  	-smax 1.25");
+			disp("\t        	\t       				\t			  	--to	  ");
 			disp("\t---------------------------------------------------------------------------------------------------");
 			disp("Planets and Scanners must be in their respective files.");
 			disp("Resolution must be one of: [Ultra, VeryHi, High, Low].");
@@ -91,10 +109,6 @@ for i = 1:nargin
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%	1. What scanner are we discussing?
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
-	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	1. What scanner are we discussing?
@@ -172,10 +186,12 @@ endswitch
 %%%	2. Default to (1.00) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist("argv_minthresh"))
-	case false
+switch ([exist("argv_minthresh") quiet])
+	case [false false]
 		inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
-	case true
+	case [false true]
+		inp_thresh = "1.00";
+	otherwise
 		inp_thresh = argv_minthresh;
 end
 
@@ -192,10 +208,12 @@ end
 %%%	2. Default to (1.25) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist("argv_maxthresh"))
-	case false
+switch ([exist("argv_maxthresh") quiet])
+	case [false false]
 		inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
-	case true
+	case [false true]
+		inp_thresh = "1.25";
+	otherwise
 		inp_thresh = argv_maxthresh;
 end
 
@@ -530,9 +548,14 @@ altsRT4(orbitRT4==0)=[];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-switch (exist("argv_plots"))
+switch (exist("argv_plots") || exist("argv_printplots"))
 	case true
 		mainfig = figure;
+
+		if (!(exist("argv_plots")) && exist("argv_printplots"))
+			set(mainfig,'Visible',false);
+		end
+
 		mainplot = plot(...
 			 altsRT2/1000, valOrbitRT2,'oc','markersize',2 ...
 			,altsRT4/1000, valOrbitRT4,'ok','markersize',2 ...
@@ -561,8 +584,13 @@ switch (exist("argv_plots"))
 		% y axis settings
 		set(gca,'ygrid','on');
 
-		plotName = sprintf('%s s%.3f-%.3f %s.png',planet,minthresh,maxthresh,resDisc);
-		%print (plotName); %this fails for me
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		
+		
+		if (exist("argv_printplots"))
+			print (plotName);
+		end
+
 	case false
 		%% nothing
 end
@@ -649,13 +677,26 @@ switch (argv_style)
 		return;
 end
 
-switch (exist("argv_plots"))
-	case true
-		figure
-		hold on
-	case false
+
+
+switch ([exist("argv_plots") exist("argv_printplots")])
+	case [true false]
+		figure;
+		hold on;
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+	case [true true]
+		figure;
+		hold on;
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+	case [false true]
+		fh = figure;
+		hold on;
+		set(fh,'Visible','Off');
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+	case [false false]
 		%% nothing
 end
+
 
 for i = flipdim(1:length(zoneStart),2)
 
@@ -792,11 +833,11 @@ for i = flipdim(1:length(zoneStart),2)
 	
 	disp(qqq);
 
-	switch (exist("argv_plots"))
-		case true
-			plot(ap,st,'.-')%,'.','markersize',3);
-		case false
+	switch ([exist("argv_plots") exist("argv_printplots")])
+		case [false false]
 			%% nothing
+		otherwise
+			plot(ap,st,'.-')%,'.','markersize',3);
 	end
 end
 
@@ -806,6 +847,20 @@ switch (exist("argv_plots"))
 	case false
 		%% nothing
 end
+
+switch ([exist("argv_plots") exist("argv_printplots")])
+	case [true false]
+		hold off;
+	case [true true]
+		hold off;
+		print(plotName);
+	case [false true]
+		hold off;
+		print(fh,plotName);
+	case [false false]
+		%% nothing
+end
+
 
 %calculate Single Pass Polar (if it exists)
 if sppmin < 25; %gives us a 25 second window to look
@@ -851,12 +906,24 @@ end
 
 
 
-switch (exist("argv_plots"))
-	case true
-		figure
+switch ([exist("argv_plots") exist("argv_printplots")])
+	case [true false]
+		figure;
 		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
 		pause(360); %% pause so we can see the interactive plots
-	case false
+	case [true true]
+		figure;
+		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-weird.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		print (plotName);
+		pause(360);
+	case [false true]
+		figure;
+		set(0,'Visible','Off')
+		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-weird.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		print (plotName);
+	case [false false]
 		%% nothing
 end
 

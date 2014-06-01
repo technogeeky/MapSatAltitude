@@ -6,7 +6,8 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-quiet = false;
+quiet = false;				%% defaults to false
+argv_style = "forum";		%% defaults to forum output
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	0. Process command-line arguments
@@ -37,8 +38,9 @@ for i = 1:nargin
 			expect = "resolution";
 		case {"-os","--output-style"}
 			expect = "output-style";
-		case {"-p","--plots"}
-			expect = "plots";
+		case "--plots"
+			expect = "";
+			argv_plots = true;
 		case {"-q","--quiet"}
 			expect = "";
 			quiet = true;
@@ -52,12 +54,12 @@ for i = 1:nargin
 			disp("\t        	\t--sidelap-min <...>	\tspecify minimum sidelap (defaults: 1.00 -- none)");
 			disp("\t        	\t--sidelap-max <...>	\tspecify maximum sidelap (defaults: 1.25)");
 			disp("\t-q      	\t--quiet            	\tonly output the table (not the inputs)");
-			disp("\t-p      	\t--plots            	\tgenerate plots (disabled)");
+			disp("\t           	\t--plots            	\tgenerate all plots)");
 			disp("\t-os <...>	\t--output-style <...>	\tchange formatting for output (disabled)");
 			disp("\t---------------------------------------------------------------------------------------------------");
 			disp("Planets and Scanners must be in their respective files.");
 			disp("Resolution must be one of: [Ultra, VeryHi, High, Low].");
-			disp("Output Style must be one of: [Plain, Forum, Markdown].");
+			disp("Output Style must be one of: [text,forum,csv,markdown].");
 			disp("NOTE: In order to have no STDIN input requests, you must specify all of:");
 			disp("  planet, scanner, resolution, sidelap-min, sidelap-max");
 			quit;
@@ -75,15 +77,23 @@ for i = 1:nargin
 					argv_resolution = args{i};
 				case "output-style"
 					argv_style = args{i};
-				case "plots"
-					argv_plot = args{i};
+					switch (argv_style)
+						case {"text","csv","markdown","forum"}
+							%% this is fine
+						otherwise
+							printf('\ninvalid output-style: %s is not one of: [text, csv, markdown, forum]\n',argv_style);
+							return;
+					end
 				otherwise
 					disp('--help? no help for you!');
 			end
 	end
 end
 
-		
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%	1. What scanner are we discussing?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -278,13 +288,7 @@ max_width = 180; %maximum swath width; if we're getting larger than this then th
 %%% We need to pick the correct FOV, and for laziness I have stored a HalfFov too (why does this need half fov?)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-%% this isn't really correct, because FOV is altitude-depdendent.
-
-
-
-hSCAN_FOV = (S.FOV * 1) / 2;
-
+hSCAN_FOV = (S.FOV * surfscale) / 2;
 hFOV = (hSCAN_FOV/180*pi);
 
 scan_res = 200;  % New lasers have 200 points in a line that spread evenly based on ground distance
@@ -309,7 +313,7 @@ maxSwathAlt  = R*cot(hFOV)-R;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Here we (evidently) pick the minimum altitude by looking at:
-%%% 1. (hardcoded) 10e3
+%%% 1. [REMOVED] (hardcoded) 10e3
 %%% 2. P.Atmo - The atmospheric height of the planet.
 %%% 3. S.AltitudeMin - The minimum altitude the scanner will work at.
 %%%
@@ -372,18 +376,26 @@ i = 1;
 
 for thisAlt = alts
     if (thisAlt < S.AltitudeIdeal)
-	hFOV_at_altitude(i) = ((S.FOV * (thisAlt / S.AltitudeIdeal) * sqrt(surfscale)) / 2) / 180 * pi;
+		hFOV_at_altitude(i) = ((S.FOV * (thisAlt / S.AltitudeIdeal) * sqrt(surfscale)) / 2) / 180 * pi;
     else
-	hFOV_at_altitude(i) = ((S.FOV * sqrt(surfscale)) / 2) / 180 * pi;
+		hFOV_at_altitude(i) = ((S.FOV * sqrt(surfscale)) / 2) / 180 * pi;
     endif;
     i++;
 endfor;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		Some information about what inputs were chosen.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (!quiet) disp(sprintf('\nScan line resolution: %d',scan_res)); endif;
-if (!quiet) disp(sprintf('Field of view: %f deg',hFOV*2*180/pi)); endif;
-if (!quiet) disp(sprintf('Sidelap range: %f - %f',minthresh,maxthresh)); endif;
-if (!quiet) disp(sprintf('Altitude Range: %.1f km - %.1f km in %.1f m steps (%i possible zones)',minAlt/1000,maxAlt/1000,alt_stepsize,numel(alts))); endif;
+if (!quiet) disp(sprintf('Field-of-View range: %3.2f°  - %3.2f°',hFOV_at_altitude(1)*2*180/pi,hFOV_at_altitude(i-1)*2*180/pi)); endif;
+if (!quiet) disp(sprintf('Sidelap       range: %4.2f   - %4.2f',minthresh,maxthresh)); endif;
+if (!quiet) disp(sprintf('Altitude      Range: %.1f km - %.1f km in %.1f m steps (%i possible zones)\n',minAlt/1000,maxAlt/1000,alt_stepsize,numel(alts))); endif;
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		Explain why the minimum altitude was chosen.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 qqq = sprintf('Minimum altitude chosen because:\n\t');
 switch minAltReason
 	case {1}
@@ -398,6 +410,9 @@ if (!quiet) disp(qqq); endif;
 if (!quiet) disp(''); endif;
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		Explain why the maximum altitude was chosen.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 qqq = sprintf('Maximum Altitude chosen because:\n\t');
 switch maxAltReason
 	case {1}
@@ -412,9 +427,12 @@ end
 if (!quiet) disp(qqq); endif;
 if (!quiet) disp(''); endif;
 
-orbitalPeriods = oPeriod2(alts,R,GM);
 
-% disp(sprintf('\norbital period: %.3f s',orbitalPeriods));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		Swath projection from FOV.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+orbitalPeriods = oPeriod2(alts,R,GM);
 
 planetRotPerPeriod = (360./planetDay)*orbitalPeriods;	% FIXME: unused
 
@@ -429,11 +447,11 @@ swathWidthsCorr = swathWidths;			%% FIXME: presumably this means Corrected, but
 										%% 	in that case, swathWidths should *never* be used again
 										%% 	(and it is. both are used.)
 
-tgtInclination = acosd(orbitalPeriods./planetDay);
 orbitRats = orbitalPeriods./planetDay;
+tgtInclination = acosd(orbitRats);
+
 
 AorbitRats = (orbitRats+1)/2;
-
 [orbitRatN orbitRatD] = rat(AorbitRats,rational_resolution);
 
 
@@ -457,7 +475,6 @@ AorbitRats = (orbitRats+1)/2;
 %%%    Called with two arguments returns the 
 %%%	 (N) numerator and (D) denominator separately as two matrices. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-											%[testORN testORD] = rat(orbitRats,1e-3);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -480,16 +497,11 @@ AorbitRats = (orbitRats+1)/2;
 idealThreshold = 360./swathWidthsCorr;
 %idealThreshFrac = mod(idealThreshold,1);		% FIXME: unused
 
-orbitRT0 = orbitRatD < idealThreshold *minthresh; 	%too low! orbit will never be good because it hits a resonant spot!
-
-orbitRT1 = orbitRatD >= idealThreshold*minthresh ... 
-	 & orbitRatD < idealThreshold*maxthresh; 	%sweet spot!
-
-orbitRT2 = orbitRatD >= idealThreshold*maxthresh ...
-	 & orbitRatD < idealThreshold*maxthresh*8; 	%takes a long time but might be okay!s
-
-orbitRT4 = orbitRatD >= idealThreshold*maxthresh*8;	%takes toooo long! 
-							% (or might be a sweet spot if rational number significance is too high!)
+orbitRT0 = orbitRatD  < idealThreshold*minthresh; 											%too low! orbit will never be good because it hits a resonant spot!
+orbitRT1 = orbitRatD >= idealThreshold*minthresh & orbitRatD < idealThreshold*maxthresh; 	%sweet spot!
+orbitRT2 = orbitRatD >= idealThreshold*maxthresh & orbitRatD < idealThreshold*maxthresh*8; 	%takes a long time but might be okay!s
+orbitRT4 = orbitRatD >= idealThreshold*maxthresh*8;											%takes toooo long! 
+													% (or might be a sweet spot if rational number significance is too high!)
 
 valOrbitRT0 = orbitalPeriods.*orbitRT0/3600;
 valOrbitRT1 = orbitalPeriods.*orbitRT1/3600;
@@ -512,47 +524,64 @@ altsRT1(orbitRT1==0)=[];
 altsRT2(orbitRT2==0)=[];
 altsRT4(orbitRT4==0)=[];
 
-mainfig = figure;
-														% mainplot = plot(...
-															% altsRT2, valOrbitRT2,'.c;Suboptimal;','markersize',2 ...
-															% ,altsRT4, valOrbitRT4,'.k;Near-Resonant;','markersize',2 ...
-															% ,altsRT0, valOrbitRT0,'.r;Resonant;','markersize',4 ...
-															% ,altsRT1, valOrbitRT1,'.b;Ideal;','markersize',5 ...
-															% );
-mainplot = plot(...
-	 altsRT2/1000, valOrbitRT2,'-c' ...
-	,altsRT4/1000, valOrbitRT4,'-k' ...
-	,altsRT0/1000, valOrbitRT0,'.r' ...
-	,altsRT1/1000, valOrbitRT1,'.b' ...
-);
 
-titleString = sprintf('Ideal altitudes for an ISA MapSat Module around %s', planet);
-title(titleString);
-xlabel('Altitude (km)');
-ylabel('Orbital Period (h)');
-														%legend('Suboptimal','Near-Resonant','Resonant','Ideal','location','northwest')
-														%legend('location','northwest');
-set(gca,'xminortick','on');
-set(gca,'xgrid','on');
-set(gca,'xminorgrid','on');
-set(gca,'ygrid','on');
-plotName = sprintf('%s s%.3f-%.3f %s.png',planet,minthresh,maxthresh,resDisc);
-														%print('planet.png');
-														%print(plotName);
-														%printing disabled because it takes forever
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		FIXME: some figure that is not used anymore (and doesn't print for me anyway)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%start to classify the sweet spots
+switch (exist("argv_plots"))
+	case true
+		mainfig = figure;
+		mainplot = plot(...
+			 altsRT2/1000, valOrbitRT2,'oc','markersize',2 ...
+			,altsRT4/1000, valOrbitRT4,'ok','markersize',2 ...
+			,altsRT0/1000, valOrbitRT0,'or','markersize',4 ...
+			,altsRT1/1000, valOrbitRT1,'ob','markersize',5 ...
+		);
+
+
+
+		titleString = sprintf('Ideal Altitudes for %s around %s',ScannerName,planet);
+		title(titleString);
+
+		xlabel('Altitude (km)');
+		ylabel('Orbital Period (h)');
+
+		legend('Suboptimal','Near-Resonant','Resonant','Ideal','location','northwest')
+		legend('location','northwest');
+
+		%% gca is 'get current axis'
+
+		%	x axis settings
+		set(gca,'xminortick','on');
+		set(gca,'xgrid','on');
+		set(gca,'xminorgrid','on');
+
+		% y axis settings
+		set(gca,'ygrid','on');
+
+		plotName = sprintf('%s s%.3f-%.3f %s.png',planet,minthresh,maxthresh,resDisc);
+		%print (plotName); %this fails for me
+	case false
+		%% nothing
+end
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		Start to classify the sweet spots.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 orbitClass = orbitRatD.*orbitRT1;
+
 zoneStart = find(diff(orbitClass) ~= 0 ) + 1;
 zoneEnd =   find(diff(orbitClass) ~= 0 );
 
 %remove the zones that are just a stretch of zeros (ie: these aren't the zones we're looking for)
-zoneStart(orbitClass(zoneStart)==0) = [];
-zoneEnd(orbitClass(zoneEnd)==0) = [];
 
-%if we start off with a sweet spot, add an extra zoneStart
+zoneStart(orbitClass(zoneStart)==0) = [];
+zoneEnd(orbitClass(zoneEnd)==0) 	= [];
+
+%	1. if we start off with a sweet spot, add an extra zoneStart
 if(orbitRT1(1))
 	zoneStart = [1 zoneStart];
 end
@@ -572,117 +601,213 @@ if isempty(zoneStart)
 end
 
 scanTime = orbitalPeriods.*orbitRatD/2; % divided by 2 because there's two sides to the globe!
-					%	(I checked in-game and it took half as long to scan as I was expecting :P)
+										%	(I checked in-game and it took half as long to scan as I was expecting :P)
 
 
 
 if (!quiet) disp(sprintf('\n Number of Zones: %d\n',length(zoneStart))); endif;
 if (!quiet) disp('---------------------------'); endif;
 
-disp(sprintf('[size=4][b]%s [%s][/B][/SIZE][spoiler=Show %s Orbits][code]\n', Name, ScannerName, ScannerName));
-disp(sprintf('%s, Sidelap %.4g - %.4g:',planet, minthresh, maxthresh));
-disp('                      SMA         Altitude         Inclination Orbital   Time to Scan        Eff.   Swath    Resolution');
-disp('Zone  Res  Sidelap             Ideal      +/- Range    (deg)   Period   Ideal       diff      FOV     Width   (deg)   (km) ');
-disp('==========================================================================================================================');
-disp('');
 
-%figure
-%hold on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		HEADER FORMATTING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+switch (argv_style)
+	case "forum"
+		disp(sprintf('[size=4][b]%s [%s][/B][/SIZE][spoiler=Show %s Orbits][code]\n', Name, ScannerName, ScannerName));
+	otherwise
+		%% nothing
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		TABLE HEADER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+switch (argv_style)
+	case {"forum","text"}
+		disp('                    Altitude                Inc.       Orbital   Time to Scan          Eff.  Swath  Resolution');
+		disp('  UEQx   EQx Sidelap  Ideal     +/- Error               Period      Total    +/- Error  FOV   Width (deg)   (km)');
+		disp('====================================================================================================================');
+		%%%%%%    17    29 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
+		%%%%%%    18    31 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
+		%%%%%%    19    33 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
+		%%%%%%    23    40 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
+		%%%%%%    25    44 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
+	case "csv"
+		disp('UEQx,EQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
+	case "markdown"
+		disp('  UEQx | EQx|Sidelap| Altitude |    Error  | Inc.    | O. Period| Scan Time |    Error| FOV  |Swath|Res (°)|Res (m)');
+		disp('=======|====|=======|==========|===========|=========|==========|===========|=========|======|=====|=======|========');
+		%%%%%%    17    29 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
+		%%%%%%    18    31 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
+		%%%%%%    19    33 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
+		%%%%%%    23    40 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
+		%%%%%%    25    44 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
+	otherwise
+		printf('\ninvalid output-style: %s is not one of: [text, csv, markdown, forum]\n',argv_style);
+		return;
+end
+
+switch (exist("argv_plots"))
+	case true
+		figure
+		hold on
+	case false
+		%% nothing
+end
+
 for i = flipdim(1:length(zoneStart),2)
-	%disp(sprintf('\n\nZone %d\t',i);
-	qqq = sprintf('%3i ',i);
-	
-	zi 	= zoneStart(i);
-	zk 	= zoneEnd(i);
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%		ALL OF THESE VARIABLES CAN BE USED IN TABLE OUTPUT
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	zi 		= zoneStart(i);
+	zk 		= zoneEnd(i);
 	altLow 	= alts(zi);
 	altHi 	= alts(zk);
 	altRa 	= altHi-altLow;
 
-	ap 	= alts(zi:zk);
-	st 	= scanTime(zi:zk);
-	od 	= orbitRatD(zi:zk);
+	ap 		= alts(zi:zk);
+	st 		= scanTime(zi:zk);
+	od 		= orbitRatD(zi:zk);
 	
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%	NOTE:
-%%%		[x  y] = function(...);	% is the same as
-%%%		[x, y] = function(...); % which is usually really
-%%%		[x,ix] = function(...); % where x is the selected value
-%%%					% and	ix is the (first) index for that value
-%%%	EXAMPLE:
-%%%		[x ix] = max([1,3,5,2,5])
-%%%		 x => 5 % the maximum
-%%%		ix => 3 % at position 3 (presumably octave numbers indexes from one)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	meantt 			= mean(st); 	% mean time value
+	[mintt minti] 	= min(st); 		% min time value and altitude of mintt
+	[maxtt maxti] 	= max(st);		% max ...
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%	NOTE:
-%%%		This code has a convention that variables ending in i are indexes.
-%%%
-%%%	EXAMPLE:
-%%%			minti is the index of the minimum (scan) time.
-%%%			minalti is the index of the minimum altitude (minalt index)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	
-	meantt = mean(st); 			% mean time value
-	[mintt minti] = min(st); 		% min time value and altitude of mintt
-	[maxtt maxti] = max(st);		% max ...
-
-	[temp meanti] = min(abs(st-meantt)); 	% ^ index of
 	[H1 M1] = sec2hm(meantt); 		% FIXME: unused
-	meanta = ap(meanti); 			% altitude of mean time value
-	[temp meanalti] = min(abs(alts-meanti));% ^ index of
-
-	
-
-	minta = ap(minti); 			% FIXME: unused
-	[temp minalti] = min(abs(alts-minta));
 	[H0 M0] = sec2hm(mintt);
-	
-
-	maxta = ap(maxti); 			% FIXME: unused
 	[H2 M2] = sec2hm(maxtt);		% FIXME: unused (x2)
-	[Hd Md] = sec2hm(maxtt-mintt);		% FIXME: unused (x)
-	
-	[temp, altii] = min(abs(alts-meanta));
-	
+	[Hd Md] = sec2hm(maxtt-mintt);	% FIXME: unused (x)
+
+
+	[temp meanti] 	= min(abs(st-meantt));
+
+	meanta 	= ap(meanti); 		% altitude of mean time value
+	minta 	= ap(minti); 		% FIXME: unused
+	maxta 	= ap(maxti); 		% FIXME: unused
+
+	[temp meanalti] = min(abs(alts-meanti));
+	[temp minalti] 	= min(abs(alts-minta));
+	[temp altii] 	= min(abs(alts-meanta));
+
 	[OPH0 OPM0] = sec2hm(orbitalPeriods(minalti));
+
+	%% swath width size for this altitude
 	sw = swathWidths(altii);
 
+	%% FOV displayed to user
 	dispfov = 2 * (hFOV_at_altitude(altii) * 180 / pi);
+
+	ts = swathWidths.*orbitalPeriods/360;
+	[sppmin sppI] = min(abs(ts-planetDay));	
+
+	%% SMA (for convenience?)
 	sma = meanta + R;
 
 	resd = sw/scan_res;  % Scan lines are spaced evenly along the ground
 	resm = resd*R*pi/180;
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%		TABLE ENTRY
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+	switch (argv_style)
+		case {"text","forum"}
+			qqq = "";
+		   %qqq = [qqq sprintf('%4i',			i)];
+			qqq = [qqq sprintf(' %5d',			orbitRatN(minalti))];
+			qqq = [qqq sprintf(' %5d',			orbitRatD(minalti))];
+			qqq = [qqq sprintf(' (%4.2f)', 		orbitRatD(minalti)./idealThreshold(minalti))];
+		   %qqq = [qqq sprintf(' %7.3f km',		sma/1000)];
+			qqq = [qqq sprintf(' %8.3f km',		meanta/1000)];
+			qqq = [qqq sprintf(' +/- %3.2f km',	altRa/1000)];
+			qqq = [qqq sprintf(' (%03.2f°)',	tgtInclination(altii))];
+			qqq = [qqq sprintf(' %3dh %04.1fm',	round(OPH0),OPM0)];
+			qqq = [qqq sprintf(' %5dh %04.1fm',	round(H0),M0)];
+			qqq = [qqq sprintf(' +/- %04.1fm',	Md)];
+			qqq = [qqq sprintf(' (%3.1f°)',		dispfov)];
+			qqq = [qqq sprintf(' % 3.0f m',		sw)];
+			qqq = [qqq sprintf(' (%03.2f°)',	resd)];
+
+			if resm < 100
+				qqq = [qqq sprintf(' %#2.2f m', resm)];
+			else
+				qqq = [qqq sprintf(' %#4.3f km', resm/1000)];
+			end
+		case {"csv"}
+			qqq = "";
+		   %qqq = [qqq sprintf('%4i',			i)];
+			qqq = [qqq sprintf('%5d',			orbitRatN(minalti))];
+			qqq = [qqq sprintf(',%5d',			orbitRatD(minalti))];
+			qqq = [qqq sprintf(',(%4.2f)', 		orbitRatD(minalti)./idealThreshold(minalti))];
+		   %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
+			qqq = [qqq sprintf(',%8.3f km',		meanta/1000)];
+			qqq = [qqq sprintf(',+/- %3.2f km',	altRa/1000)];
+			qqq = [qqq sprintf(',(%03.2f°)',	tgtInclination(altii))];
+			qqq = [qqq sprintf(',%3dh %04.1fm',	round(OPH0),OPM0)];
+			qqq = [qqq sprintf(',%5dh %04.1fm',	round(H0),M0)];
+			qqq = [qqq sprintf(',+/- %04.1fm',	Md)];
+			qqq = [qqq sprintf(',(%3.1f°)',		dispfov)];
+			qqq = [qqq sprintf(',% 3.0f m',		sw)];
+			qqq = [qqq sprintf(',(%03.2f°)',	resd)];
+
+			if resm < 100
+				qqq = [qqq sprintf(',%#2.2f m', resm)];
+			else
+				qqq = [qqq sprintf(',%#4.3f km', resm/1000)];
+			end
+		case "markdown"
+			qqq = "";
+		   %qqq = [qqq sprintf('%4i',			i)];
+			qqq = [qqq sprintf('%5d',			orbitRatN(minalti))];
+			qqq = [qqq sprintf('|%5d',			orbitRatD(minalti))];
+			qqq = [qqq sprintf('|(%4.2f)', 		orbitRatD(minalti)./idealThreshold(minalti))];
+		   %qqq = [qqq sprintf('|%7.3f km',		sma/1000)];
+			qqq = [qqq sprintf('|%8.3f km',		meanta/1000)];
+			qqq = [qqq sprintf('|+/- %3.2f km',	altRa/1000)];
+			qqq = [qqq sprintf('|(%03.2f°)',	tgtInclination(altii))];
+			qqq = [qqq sprintf('|%3dh %04.1fm',	round(OPH0),OPM0)];
+			qqq = [qqq sprintf('|%5dh %04.1fm',	round(H0),M0)];
+			qqq = [qqq sprintf('|+/- %04.1fm',	Md)];
+			qqq = [qqq sprintf('|(%3.1f°)',		dispfov)];
+			qqq = [qqq sprintf('|% 3.0f m',		sw)];
+			qqq = [qqq sprintf('|(%03.2f°)',	resd)];
+
+			if resm < 100
+				qqq = [qqq sprintf('|%#2.2f m', resm)];
+			else
+				qqq = [qqq sprintf('|%#4.3f km', resm/1000)];	
+			end			
+		otherwise
+			disp('Error: An unsupported format has been attempted.');
+	end
+
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%		END TABLE ENTRY
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 	
-	%print min-mean-max altitude  min-mean-max time
-	qqq = [qqq sprintf('%4d/%-4d (%4.2f)  ', orbitRatN(minalti), orbitRatD(minalti), orbitRatD(minalti)./idealThreshold(minalti))];
-	qqq = [qqq sprintf('%7.3f km  ',sma/1000)];
-	qqq = [qqq sprintf('%7.3f ',meanta/1000)];
-	qqq = [qqq sprintf(' +/- %5.2f km  ',altRa/1000)];
-	qqq = [qqq sprintf('%05.2f ', tgtInclination(altii))];
-	qqq = [qqq sprintf('%3dh %04.1fm ',round(OPH0),OPM0)];
-	qqq = [qqq sprintf('%5dh %04.1fm ',round(H0),M0)];
-	qqq = [qqq sprintf('+%04.1fm  ',Md)];
-	qqq = [qqq sprintf('%3.2f ', dispfov)];
-	qqq = [qqq sprintf('%5.1f ',sw)];
-	qqq = [qqq sprintf(' %4.4f ',resd)];
-	if resm < 100
-		qqq = [qqq sprintf(' %#2.2f m', resm)];
-	else
-		qqq = [qqq sprintf(' %#4.3f km', resm/1000)];
-    end
-	
-	%disp(sprintf('   %i',altii);
 	disp(qqq);
-	
-	%plot(ap,st,'.-')%,'.','markersize',3);
+
+	switch (exist("argv_plots"))
+		case true
+			plot(ap,st,'.-')%,'.','markersize',3);
+		case false
+			%% nothing
+	end
 end
-%hold off
+
+switch (exist("argv_plots"))
+	case true
+		hold off
+	case false
+		%% nothing
+end
 
 %calculate Single Pass Polar (if it exists)
-ts = swathWidths.*orbitalPeriods/360;
-[sppmin sppI] = min(abs(ts-planetDay));
 if sppmin < 25; %gives us a 25 second window to look
     disp('');
 	disp('A single-pass polar orbit exists! Orbit at exactly 90 degrees inclination.');
@@ -712,9 +837,50 @@ if sppmin < 25; %gives us a 25 second window to look
 	disp('');
 end
 
-disp('[/code][/spoiler]');
-disp('');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%		FOOTER FORMATTING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%figure
-%plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
+switch (argv_style)
+	case "forum"
+		disp('[/code][/spoiler]');
+		disp('');
+	otherwise
+		disp('');
+end
 
+
+
+switch (exist("argv_plots"))
+	case true
+		figure
+		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
+		pause(360); %% pause so we can see the interactive plots
+	case false
+		%% nothing
+end
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%	NOTE:
+%%%		[x  y] = function(...);	% is the same as
+%%%		[x, y] = function(...); % which is usually really
+%%%		[x,ix] = function(...); % where x is the selected value
+%%%					% and	ix is the (first) index for that value
+%%%	EXAMPLE:
+%%%		[x ix] = max([1,3,5,2,5])
+%%%		 x => 5 % the maximum
+%%%		ix => 3 % at position 3 (presumably octave numbers indexes from one)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%	NOTE:
+%%%		This code has a convention that variables ending in i are indexes.
+%%%
+%%%	EXAMPLE:
+%%%			minti is the index of the minimum (scan) time.
+%%%			minalti is the index of the minimum altitude (minalt index)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -327,7 +327,7 @@ if (!quiet) disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days)); endif;
 %%%	FIXME: Is this maxSwathAlt likely to be reached?
 %%%		For the Mun and for SAR, this is 1.12e8 meters.
 
-maxSwathAlt  = R*cot(hFOV)-R;
+maxSwathAlt  = max(R*cot(hFOV)-R,8*syncorbit);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Here we (evidently) pick the minimum altitude by looking at:
@@ -359,7 +359,8 @@ maxSwathAlt  = R*cot(hFOV)-R;
 %%% FIXME: The following may need to be changed to accomidate the higher-altitude support.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-alt_stepsize = max(min((maxAlt-minAlt)/50000,25),0.5)*alt_stepmul;
+alt_stepsize = max( min( (maxAlt-minAlt)/50000 , 25) , 0.5 )*alt_stepmul;
+
 
 if maxAlt > 1000e3
     alts = [minAlt:alt_stepsize/2:(500e3-alt_stepsize) 500e3:alt_stepsize*1:maxAlt];
@@ -367,7 +368,7 @@ else
     alts = minAlt:alt_stepsize:maxAlt;
 end
 
-
+printf("minalt: %i, maxalt: %i, alt_stepsize: %i, maxSwathAlt: %i",minAlt,maxAlt,alt_stepsize,maxSwathAlt);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -394,9 +395,11 @@ i = 1;
 
 for thisAlt = alts
     if (thisAlt < S.AltitudeIdeal)
-		hFOV_at_altitude(i) = ((S.FOV * (thisAlt / S.AltitudeIdeal) * sqrt(surfscale)) / 2) / 180 * pi;
+		thisFOV = min((S.FOV * (thisAlt / S.AltitudeIdeal) * sqrt(surfscale)),20);
+		hFOV_at_altitude(i) = ( thisFOV / 2) / 180 * pi;
     else
-		hFOV_at_altitude(i) = ((S.FOV * sqrt(surfscale)) / 2) / 180 * pi;
+		thisFOV = min((S.FOV * sqrt(surfscale)),20);
+		hFOV_at_altitude(i) = (thisFOV / 2) / 180 * pi;
     endif;
     i++;
 endfor;

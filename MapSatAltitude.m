@@ -9,7 +9,7 @@ close all
 quiet = false;				%% defaults to false
 argv_style = "forum";		%% defaults to forum output
 tables_only = false;		%% usually, we accompany our tables with extra info.
-
+debug = false;				%% this is only for developers, to print extra stuffs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	0. Process command-line arguments
@@ -327,7 +327,10 @@ if (!quiet) disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days)); endif;
 %%%	FIXME: Is this maxSwathAlt likely to be reached?
 %%%		For the Mun and for SAR, this is 1.12e8 meters.
 
-maxSwathAlt  = max(R*cot(hFOV)-R,8*syncorbit);
+maxSwathAlt  = max(R*cot(hFOV)-R,8*syncorbit);	%% FIXME: this is hack to get around negative values
+
+	%% the problem here is that we don't yet have altitude-dependent FOV
+	%% but we normally need to know the maximum altitude to get altitude-dependent FOV.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Here we (evidently) pick the minimum altitude by looking at:
@@ -368,7 +371,9 @@ else
     alts = minAlt:alt_stepsize:maxAlt;
 end
 
-printf("minalt: %i, maxalt: %i, alt_stepsize: %i, maxSwathAlt: %i",minAlt,maxAlt,alt_stepsize,maxSwathAlt);
+if (debug)
+	printf("minalt: %i, maxalt: %i, alt_stepsize: %i, maxSwathAlt: %i",minAlt,maxAlt,alt_stepsize,maxSwathAlt);
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -681,23 +686,15 @@ switch (argv_style)
 end
 
 
+if (exist("argv_plots") || exist("argv_printplots"))
+	fh = figure;
+	hold on;
+	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+end
 
 switch ([exist("argv_plots") exist("argv_printplots")])
-	case [true false]
-		figure;
-		hold on;
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
-	case [true true]
-		figure;
-		hold on;
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 	case [false true]
-		fh = figure;
-		hold on;
 		set(fh,'Visible','Off');
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
-	case [false false]
-		%% nothing
 end
 
 
@@ -840,28 +837,37 @@ for i = flipdim(1:length(zoneStart),2)
 		case [false false]
 			%% nothing
 		otherwise
-			plot(ap,st,'.-')%,'.','markersize',3);
+			plot(ap/1000,st/3600,'.-');
 	end
 end
 
-switch (exist("argv_plots"))
-	case true
-		hold off
-	case false
-		%% nothing
+if (exist("argv_plots") || exist("argv_printplots"))
+	hold off;
+	titleString = sprintf('Ideal Zones for [%s] at [%s]',ScannerName,planet);
+	title(titleString);
+
+	xlabel('Altitude (km)');
+	ylabel('Scan Time (h)');
+
+	legend('Ideal Zone','location','northwest')
+	legend('location','northwest');
+
+	%% gca is 'get current axis'
+
+	%	x axis settings
+	set(gca,'xminortick','on');
+	set(gca,'xgrid','on');
+	set(gca,'xminorgrid','on');
+
+	% y axis settings
+	set(gca,'ygrid','on');
 end
 
 switch ([exist("argv_plots") exist("argv_printplots")])
-	case [true false]
-		hold off;
 	case [true true]
-		hold off;
 		print(plotName);
 	case [false true]
-		hold off;
 		print(fh,plotName);
-	case [false false]
-		%% nothing
 end
 
 
@@ -907,29 +913,50 @@ switch (argv_style)
 		disp('');
 end
 
+if (exist("argv_plots") || exist("argv_printplots"))
+		figure;
+		plot(alts/1000,orbitRatD,'ro',"markersize",3 ...
+			,alts/1000,orbitRatD,'k.',alts/1000 ...
+			,idealThreshold*minthresh,'b' ...
+			,alts/1000,idealThreshold.*maxthresh,'g');
 
+		titleString = sprintf('Resonance Structure for [%s] at [%s]',ScannerName,planet);
+		title(titleString);
+
+		xlabel('Altitude (km)');
+		ylabel('Unknown');
+
+		lower = sprintf('Lower Sidelap Bound (%4.2f)',minthresh);
+		upper = sprintf('Upper Sidelap Bound (%4.2f)',maxthresh);
+		legend('Resonance Range', 'Resonance Altitude',lower,upper,'location','northwest')
+		legend('location','northwest');
+
+		%% gca is 'get current axis'
+
+		%	x axis settings
+		set(gca,'xminortick','on');
+		set(gca,'xgrid','on');
+		set(gca,'xminorgrid','on');
+
+		% y axis settings
+		set(gca,'ygrid','on');
+end
+	
 
 switch ([exist("argv_plots") exist("argv_printplots")])
 	case [true false]
-		figure;
-		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
 		pause(360); %% pause so we can see the interactive plots
 	case [true true]
-		figure;
-		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-weird.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 		print (plotName);
-		pause(360);
+		pause(360); %% pause so we can see the interactive plots
 	case [false true]
-		figure;
 		set(0,'Visible','Off')
-		plot(alts,orbitRatD,'b.',alts,orbitRatD,'k.',alts,idealThreshold*minthresh,'r',alts,idealThreshold.*maxthresh);
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-weird.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 		print (plotName);
 	case [false false]
 		%% nothing
 end
-
 
 
 

@@ -224,8 +224,16 @@ if isempty(inp_thres2) || inp_thres2 < 0
 else
 	maxthresh = inp_thres2;
 end
+
 if maxthresh < minthresh
 	disp('Maximum threshold cannot be lower than minimum threshold!');
+	return;
+end
+
+if (maxthresh == minthresh)
+	disp('Minimum and maximum sidelap thresholds are the same.');
+	disp('This will eliminate all sweet spots, and thus the utility of this program.');
+	disp('Please try again with different minimum and maximum sidelaps.');
 	return;
 end
 
@@ -523,11 +531,11 @@ AorbitRats = (orbitRats+1)/2;
 idealThreshold = 360./swathWidthsCorr;
 %idealThreshFrac = mod(idealThreshold,1);		% FIXME: unused
 
-orbitRT0 = orbitRatD  < idealThreshold*minthresh; 											%too low! orbit will never be good because it hits a resonant spot!
+orbitRT0 = orbitRatD  < idealThreshold*minthresh;											%too low! orbit will never be good because it hits a resonant spot!
 orbitRT1 = orbitRatD >= idealThreshold*minthresh & orbitRatD < idealThreshold*maxthresh; 	%sweet spot!
 orbitRT2 = orbitRatD >= idealThreshold*maxthresh & orbitRatD < idealThreshold*maxthresh*8; 	%takes a long time but might be okay!s
 orbitRT4 = orbitRatD >= idealThreshold*maxthresh*8;											%takes toooo long! 
-													% (or might be a sweet spot if rational number significance is too high!)
+																							% (or might be a sweet spot if rational number significance is too high!)
 
 valOrbitRT0 = orbitalPeriods.*orbitRT0/3600;
 valOrbitRT1 = orbitalPeriods.*orbitRT1/3600;

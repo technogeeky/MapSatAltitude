@@ -7,7 +7,7 @@ close all
 %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 quiet = false;				%% defaults to false
-argv_style = "forum";		%% defaults to forum output
+argv_style = 'forum';		%% defaults to forum output
 tables_only = false;		%% usually, we accompany our tables with extra info.
 debug = false;				%% this is only for developers, to print extra stuffs
 
@@ -23,80 +23,80 @@ debug = false;				%% this is only for developers, to print extra stuffs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-expect = "";
+expect = '';
 args = argv();
 for i = 1:nargin
 	%% double arguments
 	switch (args{i})
-		case {"-p", "--planet"}
-			expect = "planet";
-		case {"-s", "--scanner"}
-			expect = "scanner";
-		case {"-smin","--sidelap-min"}
-			expect = "sidelap-min";
-		case {"-smax","--sidelap-max"}
-			expect = "sidelap-max";
-		case {"-r","--resolution"}
-			expect = "resolution";
-		case {"-os","--output-style"}
-			expect = "output-style";
-		case {"-pl","--plots"};
-			expect = "";
+		case {'-p', '--planet'}
+			expect = 'planet';
+		case {'-s', '--scanner'}
+			expect = 'scanner';
+		case {'-smin','--sidelap-min'}
+			expect = 'sidelap-min';
+		case {'-smax','--sidelap-max'}
+			expect = 'sidelap-max';
+		case {'-r','--resolution'}
+			expect = 'resolution';
+		case {'-os','--output-style'}
+			expect = 'output-style';
+		case {'-pl','--plots'};
+			expect = '';
 			argv_plots = true;
-		case {"-pp","--printplots"}
-			expect = "";
-			set (0, "defaultaxesfontname", "Helvetica");	
-			set (0, "defaulttextfontname", "Helvetica");
+		case {'-pp','--printplots'}
+			expect = '';
+			set (0, 'defaultaxesfontname', 'Helvetica');	
+			set (0, 'defaulttextfontname', 'Helvetica');
 				%% this is REQUIRED for --pp
 			argv_printplots = true;
-		case {"-to","--tables-only"}
-			expect = "";
+		case {'-to','--tables-only'}
+			expect = '';
 			tables_only = true;
-		case {"-q","--quiet"}
-			expect = "";
+		case {'-q','--quiet'}
+			expect = '';
 			quiet = true;
-		case {"-h","--help"}
-			disp("Usage: ./MapSatAltitude <flags>; where flags are:");
-			disp("\tShort Form	\tLong Form          	\tFlag Description");
-			disp("\t--------------------------------------------------------------------------------------------------");
-			disp("\t-p <...>	\t--planet <...>		\tspecify planet");
-			disp("\t-s <...>	\t--scanner <...>		\tspecify scanner");
-			disp("\t-r <...>	\t--resolution <...>	\tspecify resolution");
-			disp("\t-smin <...>	\t--sidelap-min <...>	\tspecify minimum sidelap");
-			disp("\t-smax <...>	\t--sidelap-max <...>	\tspecify maximum sidelap");
-			disp("\t---------------------------------------------------------------------------------------------------");
-			disp("\t-pl        	\t--plots            	\tgenerate all plots)");
-			disp("\t-pp     	\t--printplots      	\tprint all plots to a suitably-named file");
-			disp("\t---------------------------------------------------------------------------------------------------");
-			disp("\t-os <...>	\t--output-style <...>	\tchange formatting for output (disabled)");
-			disp("\t-to      	\t--tables-only        	\tonly output the table (not the inputs)");
-			disp("\t-q      	\t--quiet            	\tquiet mode: implies:");
-			disp("\t        	\t            			\t-smin 1.00");
-			disp("\t        	\t            			\t-smax 1.25");
-			disp("\t        	\t            			\t-to	  ");
-			disp("\t---------------------------------------------------------------------------------------------------");
-			disp("Planets and Scanners must be in their respective files.");
-			disp("Resolution must be one of: [Ultra, VeryHi, High, Low].");
-			disp("Output Style must be one of: [text,forum,csv,markdown].");
-			disp("NOTE: In order to have no STDIN input requests, you must specify all of:");
-			disp("  planet, scanner, resolution, sidelap-min, sidelap-max");
+		case {'-h','--help'}
+			disp('Usage: ./MapSatAltitude <flags>; where flags are:');
+			disp('\tShort Form	\tLong Form          	\tFlag Description');
+			disp('\t--------------------------------------------------------------------------------------------------');
+			disp('\t-p <...>	\t--planet <...>		\tspecify planet');
+			disp('\t-s <...>	\t--scanner <...>		\tspecify scanner');
+			disp('\t-r <...>	\t--resolution <...>	\tspecify resolution');
+			disp('\t-smin <...>	\t--sidelap-min <...>	\tspecify minimum sidelap');
+			disp('\t-smax <...>	\t--sidelap-max <...>	\tspecify maximum sidelap');
+			disp('\t---------------------------------------------------------------------------------------------------');
+			disp('\t-pl        	\t--plots            	\tgenerate all plots)');
+			disp('\t-pp     	\t--printplots      	\tprint all plots to a suitably-named file');
+			disp('\t---------------------------------------------------------------------------------------------------');
+			disp('\t-os <...>	\t--output-style <...>	\tchange formatting for output (disabled)');
+			disp('\t-to      	\t--tables-only        	\tonly output the table (not the inputs)');
+			disp('\t-q      	\t--quiet            	\tquiet mode: implies:');
+			disp('\t        	\t            			\t-smin 1.00');
+			disp('\t        	\t            			\t-smax 1.25');
+			disp('\t        	\t            			\t-to	  ');
+			disp('\t---------------------------------------------------------------------------------------------------');
+			disp('Planets and Scanners must be in their respective files.');
+			disp('Resolution must be one of: [Ultra, VeryHi, High, Low].');
+			disp('Output Style must be one of: [text,forum,csv,markdown].');
+			disp('NOTE: In order to have no STDIN input requests, you must specify all of:');
+			disp('  planet, scanner, resolution, sidelap-min, sidelap-max');
 			quit;
 		otherwise
 			switch (expect)
-				case "planet"
+				case 'planet'
 					argv_planet = args{i};
-				case "scanner"
+				case 'scanner'
 					argv_scanner = args{i};
-				case "sidelap-min"
+				case 'sidelap-min'
 					argv_minthresh = args{i};
-				case "sidelap-max"
+				case 'sidelap-max'
 					argv_maxthresh = args{i};
-				case "resolution"
+				case 'resolution'
 					argv_resolution = args{i};
-				case "output-style"
+				case 'output-style'
 					argv_style = args{i};
 					switch (argv_style)
-						case {"text","csv","markdown","forum"}
+						case {'text','csv','markdown','forum'}
 							%% this is fine
 						otherwise
 							printf('\ninvalid output-style: %s is not one of: [text, csv, markdown, forum]\n',argv_style);
@@ -114,7 +114,7 @@ end
 %%%	1. What scanner are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist("argv_scanner"))
+switch (exist('argv_scanner'))
 	case false
 		scanner = input('Scanner name? ', 's');
 	case true
@@ -138,7 +138,7 @@ if (!quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); endif;
 %%%	2. What planet are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist("argv_planet"))
+switch (exist('argv_planet'))
 	case false
 		planet = input('Planet name? ','s');
 	case true
@@ -162,7 +162,7 @@ Name	  = P.Name;
 %%%		(instead of Kerbin-scaled ones)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch (Name)
-	case { "Earth", "Moon", "Jupiter", "Deimos", "Phobos" }
+	case { 'Earth', 'Moon', 'Jupiter', 'Deimos', 'Phobos' }
 		surfscale = max (6371000 / R,1);
 		InRSS = true;
 	otherwise
@@ -186,11 +186,11 @@ endswitch
 %%%	2. Default to (1.00) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch ([exist("argv_minthresh") quiet])
+switch ([exist('argv_minthresh') quiet])
 	case [false false]
 		inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
 	case [false true]
-		inp_thresh = "1.00";
+		inp_thresh = '1.00';
 	otherwise
 		inp_thresh = argv_minthresh;
 end
@@ -208,11 +208,11 @@ end
 %%%	2. Default to (1.25) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch ([exist("argv_maxthresh") quiet])
+switch ([exist('argv_maxthresh') quiet])
 	case [false false]
 		inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
 	case [false true]
-		inp_thresh = "1.25";
+		inp_thresh = '1.25';
 	otherwise
 		inp_thresh = argv_maxthresh;
 end
@@ -252,7 +252,7 @@ alt_stepmul = 1;
 %%%		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist("argv_resolution"))
+switch (exist('argv_resolution'))
 	case false
 		switch (InRSS)
 			case false
@@ -380,7 +380,7 @@ else
 end
 
 if (debug)
-	printf("minalt: %i, maxalt: %i, alt_stepsize: %i, maxSwathAlt: %i",minAlt,maxAlt,alt_stepsize,maxSwathAlt);
+	printf('minalt: %i, maxalt: %i, alt_stepsize: %i, maxSwathAlt: %i',minAlt,maxAlt,alt_stepsize,maxSwathAlt);
 end
 
 
@@ -389,7 +389,7 @@ end
 %%%	Internally to SCANsat, the calculation for FOV would look like this:
 %%%	2 * (749999 meters / 750000 meters) * sqrt(600000 meters/200000 meters)
 %%%	^    ^^^^^^^^^^^^^   ^^^^^^^^^^^^^         ^^^^^^^^^^^^^ ^^^^^^^^^^^^^
-%%%	fov   	altitude	"best"		1 Kerbin radius	  parentBody radius
+%%%	fov   	altitude	'best'		1 Kerbin radius	  parentBody radius
 %%%	    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 %%%		^ this part penalizes you		^ this part gives you a boost
 %%%		  for being between minimum		scanning a smaller body than
@@ -564,11 +564,11 @@ altsRT4(orbitRT4==0)=[];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-switch (exist("argv_plots") || exist("argv_printplots"))
+switch (exist('argv_plots') || exist('argv_printplots'))
 	case true
 		mainfig = figure;
 
-		if (!(exist("argv_plots")) && exist("argv_printplots"))
+		if (!(exist('argv_plots')) && exist('argv_printplots'))
 			set(mainfig,'Visible',false);
 		end
 
@@ -603,7 +603,7 @@ switch (exist("argv_plots") || exist("argv_printplots"))
 		plotName = sprintf('%s_%s_s%.3f-%.3f_%s.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 		
 		
-		if (exist("argv_printplots"))
+		if (exist('argv_printplots'))
 			print (plotName);
 		end
 
@@ -658,7 +658,7 @@ if (!quiet) disp('---------------------------'); endif;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch (argv_style)
-	case "forum"
+	case 'forum'
 		disp(sprintf('[size=4][b]%s [%s][/B][/SIZE][spoiler=Show %s Orbits][code]\n', Name, ScannerName, ScannerName));
 	otherwise
 		%% nothing
@@ -670,7 +670,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch (argv_style)
-	case {"forum","text"}
+	case {'forum','text'}
 		disp('                    Altitude                Inc.       Orbital   Time to Scan          Eff.  Swath  Resolution');
 		disp('  UEQx   EQx Sidelap  Ideal     +/- Error               Period      Total    +/- Error  FOV   Width (deg)   (km)');
 		disp('====================================================================================================================');
@@ -679,9 +679,9 @@ switch (argv_style)
 		%%%%%%    19    33 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
 		%%%%%%    23    40 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
 		%%%%%%    25    44 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
-	case "csv"
+	case 'csv'
 		disp('Scanner,UEQx,EQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
-	case "markdown"
+	case 'markdown'
 		disp('  UEQx | EQx|Sidelap| Altitude |    Error  | Inc.    | O. Period| Scan Time |    Error| FOV  |Swath|Res (°)|Res (m)');
 		disp('-------|----|-------|----------|-----------|---------|----------|-----------|---------|------|-----|-------|--------');		%%%%%%    17    29 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
 		%%%%%%    18    31 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
@@ -694,13 +694,13 @@ switch (argv_style)
 end
 
 
-if (exist("argv_plots") || exist("argv_printplots"))
+if (exist('argv_plots') || exist('argv_printplots'))
 	fh = figure;
 	hold on;
 	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 end
 
-switch ([exist("argv_plots") exist("argv_printplots")])
+switch ([exist('argv_plots') exist('argv_printplots')])
 	case [false true]
 		set(fh,'Visible','Off');
 end
@@ -763,8 +763,8 @@ for i = flipdim(1:length(zoneStart),2)
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 
 	switch (argv_style)
-		case {"text","forum"}
-			qqq = "";
+		case {'text','forum'}
+			qqq = '';
 		   %qqq = [qqq sprintf('%4i',			i)];
 			qqq = [qqq sprintf(' %5d',			orbitRatN(minalti))];
 			qqq = [qqq sprintf(' %5d',			orbitRatD(minalti))];
@@ -785,8 +785,8 @@ for i = flipdim(1:length(zoneStart),2)
 			else
 				qqq = [qqq sprintf(' %#4.3f km', resm/1000)];
 			end
-		case {"csv"}
-			qqq = "";
+		case {'csv'}
+			qqq = '';
 		   %qqq = [qqq sprintf('%4i',			i)];
 		    qqq = [qqq sprintf('%-5s',			ScannerName)];			% this is different
 			qqq = [qqq sprintf(',%5d',			orbitRatN(minalti))];
@@ -808,8 +808,8 @@ for i = flipdim(1:length(zoneStart),2)
 			else
 				qqq = [qqq sprintf(',%#4.3f km', resm/1000)];
 			end
-		case "markdown"
-			qqq = "";
+		case 'markdown'
+			qqq = '';
 		   %qqq = [qqq sprintf('%4i',			i)];
 			qqq = [qqq sprintf('%5d',			orbitRatN(minalti))];
 			qqq = [qqq sprintf('|%5d',			orbitRatD(minalti))];
@@ -841,7 +841,7 @@ for i = flipdim(1:length(zoneStart),2)
 	
 	disp(qqq);
 
-	switch ([exist("argv_plots") exist("argv_printplots")])
+	switch ([exist('argv_plots') exist('argv_printplots')])
 		case [false false]
 			%% nothing
 		otherwise
@@ -849,7 +849,7 @@ for i = flipdim(1:length(zoneStart),2)
 	end
 end
 
-if (exist("argv_plots") || exist("argv_printplots"))
+if (exist('argv_plots') || exist('argv_printplots'))
 	hold off;
 	titleString = sprintf('Ideal Zones for [%s] at [%s]',ScannerName,planet);
 	title(titleString);
@@ -871,7 +871,7 @@ if (exist("argv_plots") || exist("argv_printplots"))
 	set(gca,'ygrid','on');
 end
 
-switch ([exist("argv_plots") exist("argv_printplots")])
+switch ([exist('argv_plots') exist('argv_printplots')])
 	case [true true]
 		print(plotName);
 	case [false true]
@@ -914,16 +914,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 switch (argv_style)
-	case "forum"
+	case 'forum'
 		disp('[/code][/spoiler]');
 		disp('');
 	otherwise
 		disp('');
 end
 
-if (exist("argv_plots") || exist("argv_printplots"))
+if (exist('argv_plots') || exist('argv_printplots'))
 		figure;
-		plot(alts/1000,orbitRatD,'ro',"markersize",3 ...
+		plot(alts/1000,orbitRatD,'ro','markersize',3 ...
 			,alts/1000,orbitRatD,'k.',alts/1000 ...
 			,idealThreshold*minthresh,'b' ...
 			,alts/1000,idealThreshold.*maxthresh,'g');
@@ -951,7 +951,7 @@ if (exist("argv_plots") || exist("argv_printplots"))
 end
 	
 
-switch ([exist("argv_plots") exist("argv_printplots")])
+switch ([exist('argv_plots') exist('argv_printplots')])
 	case [true false]
 		pause(360); %% pause so we can see the interactive plots
 	case [true true]

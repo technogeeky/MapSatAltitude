@@ -414,7 +414,7 @@ for thisAlt = alts
 		thisFOV = min((S.FOV * sqrt(surfscale)),20);
 		hFOV_at_altitude(i) = (thisFOV / 2) / 180 * pi;
     end;
-    i++;
+    i=i+1;
 end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -568,7 +568,7 @@ switch (exist('argv_plots') || exist('argv_printplots'))
 	case true
 		mainfig = figure;
 
-		if (!(exist('argv_plots')) && exist('argv_printplots'))
+		if (~(exist('argv_plots')) && exist('argv_printplots'))
 			set(mainfig,'Visible',false);
 		end
 

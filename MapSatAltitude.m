@@ -1,4 +1,4 @@
-function MapSatAltitude( varargin )
+function MapSatAltitude( argin )
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -22,8 +22,8 @@ debug = false;				%% this is only for developers, to print extra stuffs
 
 
 expect = '';
-args = varargin;
-for i = 1:nargin
+args = strsplit( argin );
+for i = 1:length( args )
 	%% double arguments
 	switch (args{i})
 		case {'-p', '--planet'}

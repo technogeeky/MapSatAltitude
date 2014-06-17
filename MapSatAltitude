@@ -1,0 +1,3 @@
+#!/bin/bash
+export MLINARG=$@
+matlab -nodesktop -nosplash -r "inputArg = getenv( 'MLINARG' ); MapSatAltitude( inputArg ); exit;"

@@ -22,7 +22,13 @@ debug = false;				%% this is only for developers, to print extra stuffs
 
 
 expect = '';
-args = strsplit( argin );
+if ( exist( 'argin', 'var') && ischar( argin ) )
+    args = strsplit( argin );
+else
+    args = {};
+end
+
+
 for i = 1:length( args )
 	%% double arguments
 	switch (args{i})

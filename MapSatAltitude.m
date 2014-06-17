@@ -1,6 +1,4 @@
-#!/usr/bin/octave -qf
-clear all
-close all
+function MapSatAltitude( varargin )
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,7 +22,7 @@ debug = false;				%% this is only for developers, to print extra stuffs
 
 
 expect = '';
-args = argv();
+args = varargin;
 for i = 1:nargin
 	%% double arguments
 	switch (args{i})

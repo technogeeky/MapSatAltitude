@@ -118,11 +118,10 @@ end
 %%%	1. What scanner are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_scanner','var'))
-	case false
-		scanner = input('Scanner name? ', 's');
-	case true
-		scanner = argv_scanner;
+if exist('argv_scanner','var')
+	scanner = argv_scanner;
+else
+	scanner = input('Scanner name? ', 's');
 end
 
 scanners = parseScannerInfo();
@@ -142,11 +141,10 @@ if (~quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); end;
 %%%	2. What planet are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_planet','var'))
-	case false
-		planet = input('Planet name? ','s');
-	case true
-		planet = argv_planet;
+if exist('argv_planet','var')
+	planet = argv_planet;
+else
+	planet = input('Planet name? ','s');
 end
 
 planets = parsePlanetInfo();

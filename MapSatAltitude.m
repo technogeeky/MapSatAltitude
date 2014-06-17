@@ -132,7 +132,7 @@ end
 
 ScannerName = S.Name;
 
-if (!quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); end;
+if (~quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	2. What planet are we discussing?
@@ -291,7 +291,7 @@ else
 		rational_resolution = 1e-4;
 	end
 end
-if (!quiet) disp(sprintf('Rational Number Numerical Resolution: %s (%.2e)\n',resDisc,rational_resolution)); end;
+if (~quiet) disp(sprintf('Rational Number Numerical Resolution: %s (%.2e)\n',resDisc,rational_resolution)); end;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -319,16 +319,16 @@ hFOV = (hSCAN_FOV/180*pi);
 
 scan_res = 200;  % New lasers have 200 points in a line that spread evenly based on ground distance
 
-if (!quiet) disp(''); end;
-if (!quiet) disp(''); end;
+if (~quiet) disp(''); end;
+if (~quiet) disp(''); end;
 
 
 [dayh daym days] = sec2hms(planetDay);
 syncorbit = oHeight2(planetDay,R,GM);
 
-if (!quiet) disp(sprintf('\nPlanet:     %s\nRadius:     %d km',planet,R/1000)); end;
-if (!quiet) disp(sprintf('Sync.Orbit: %.2f km\nSOI:        %.2f km',syncorbit/1000,P.SOI/1000)); end;
-if (!quiet) disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days)); end;
+if (~quiet) disp(sprintf('\nPlanet:     %s\nRadius:     %d km',planet,R/1000)); end;
+if (~quiet) disp(sprintf('Sync.Orbit: %.2f km\nSOI:        %.2f km',syncorbit/1000,P.SOI/1000)); end;
+if (~quiet) disp(sprintf('Day Length: %dh %2dm %ds',dayh,daym,days)); end;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -420,10 +420,10 @@ end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%		Some information about what inputs were chosen.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if (!quiet) disp(sprintf('\nScan line resolution: %d',scan_res)); end;
-if (!quiet) disp(sprintf('Field-of-View range: %3.2f°  - %3.2f°',hFOV_at_altitude(1)*2*180/pi,hFOV_at_altitude(i-1)*2*180/pi)); end;
-if (!quiet) disp(sprintf('Sidelap       range: %4.2f   - %4.2f',minthresh,maxthresh)); end;
-if (!quiet) disp(sprintf('Altitude      Range: %.1f km - %.1f km in %.1f m steps (%i possible zones)\n',minAlt/1000,maxAlt/1000,alt_stepsize,numel(alts))); end;
+if (~quiet) disp(sprintf('\nScan line resolution: %d',scan_res)); end;
+if (~quiet) disp(sprintf('Field-of-View range: %3.2f°  - %3.2f°',hFOV_at_altitude(1)*2*180/pi,hFOV_at_altitude(i-1)*2*180/pi)); end;
+if (~quiet) disp(sprintf('Sidelap       range: %4.2f   - %4.2f',minthresh,maxthresh)); end;
+if (~quiet) disp(sprintf('Altitude      Range: %.1f km - %.1f km in %.1f m steps (%i possible zones)\n',minAlt/1000,maxAlt/1000,alt_stepsize,numel(alts))); end;
 
 
 
@@ -440,8 +440,8 @@ switch minAltReason
 %		qqq = [qqq sprintf('because of a hardcoded limit of %.2f m. deal with it. ',10e3)];
 
 end
-if (!quiet) disp(qqq); end;
-if (!quiet) disp(''); end;
+if (~quiet) disp(qqq); end;
+if (~quiet) disp(''); end;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -458,8 +458,8 @@ switch maxAltReason
 	case {4}
 		qqq = [qqq sprintf('maximum swath width of %d degrees at %.2f km', max_width, maxSwathAlt/1000)];
 end
-if (!quiet) disp(qqq); end;
-if (!quiet) disp(''); end;
+if (~quiet) disp(qqq); end;
+if (~quiet) disp(''); end;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -649,8 +649,8 @@ scanTime = orbitalPeriods.*orbitRatD/2; % divided by 2 because there's two sides
 
 
 
-if (!quiet) disp(sprintf('\n Number of Zones: %d\n',length(zoneStart))); end;
-if (!quiet) disp('---------------------------'); end;
+if (~quiet) disp(sprintf('\n Number of Zones: %d\n',length(zoneStart))); end;
+if (~quiet) disp('---------------------------'); end;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

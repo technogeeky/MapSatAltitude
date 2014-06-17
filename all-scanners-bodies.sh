@@ -8,9 +8,9 @@
 for p in "Gilly" "Minmus"
 do
 	echo "on $p"
-	./MapSatAltitude -p $p -s RADAR -r Low -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s Multi -r Low -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s SAR   -r Low -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s RADAR -r Low -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s Multi -r Low -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s SAR   -r Low -pp -q -os forum >> $p.txt
 	mv $p_*.png planets
 	mv $p.txt planets
 done
@@ -20,9 +20,9 @@ done
 for p in "Jool"
 do
 	echo "on $p"
-	./MapSatAltitude -p $p -s RADAR -r Very -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s Multi -r Very -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s SAR   -r Very -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s RADAR -r Very -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s Multi -r Very -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s SAR   -r Very -pp -q -os forum >> $p.txt
 	mv $p_*.png planets
 	mv $p.txt planets
 done
@@ -32,9 +32,9 @@ done
 for p in "Moho" "Eve" "Kerbin" "Mun" "Duna" "Ike" "Dres" "Laythe" "Vall" "Tylo" "Bop"
 do
 	echo "on $p"
-	./MapSatAltitude -p $p -s RADAR -r Hi -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s Multi -r Hi -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s SAR   -r Hi -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s RADAR -r Hi -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s Multi -r Hi -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s SAR   -r Hi -pp -q -os forum >> $p.txt
 	mv $p_*.png planets
 	mv $p.txt planets
 done
@@ -46,9 +46,9 @@ done
 for p in "Pol"
 do
 	echo "on $p"
-	./MapSatAltitude -p $p -s RADAR -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
-	./MapSatAltitude -p $p -s Multi -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
-	./MapSatAltitude -p $p -s SAR   -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s RADAR -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s Multi -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s SAR   -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
 	mv $p_*.png planets
 	mv $p.txt planets
 done
@@ -57,9 +57,9 @@ done
 for p in "Earth" "Moon"
 do
 	echo "on $p"
-	./MapSatAltitude -p $p -s RADAR -r Very -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s Multi -r Very -pp -q -os forum >> $p.txt
-	./MapSatAltitude -p $p -s SAR   -r Very -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s RADAR -r Very -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s Multi -r Very -pp -q -os forum >> $p.txt
+	./MapSatAltitude.sh -p $p -s SAR   -r Very -pp -q -os forum >> $p.txt
 	mv $p_*.png planets
 	mv $p.txt planets
 done

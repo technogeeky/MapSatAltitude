@@ -707,7 +707,7 @@ if (~exist('argv_plots','var') && exist('argv_printplots','var'))
 end
 
 
-for i = flip(1:length(zoneStart),2)
+for i = flipdim(1:length(zoneStart),2)
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%		ALL OF THESE VARIABLES CAN BE USED IN TABLE OUTPUT

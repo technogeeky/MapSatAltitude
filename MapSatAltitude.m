@@ -118,7 +118,7 @@ end
 %%%	1. What scanner are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_scanner'))
+switch (exist('argv_scanner','var'))
 	case false
 		scanner = input('Scanner name? ', 's');
 	case true
@@ -142,7 +142,7 @@ if (~quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); end;
 %%%	2. What planet are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_planet'))
+switch (exist('argv_planet','var'))
 	case false
 		planet = input('Planet name? ','s');
 	case true
@@ -190,13 +190,14 @@ end
 %%%	2. Default to (1.00) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch ([exist('argv_minthresh') quiet])
-	case [false false]
-		inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
-	case [false true]
-		inp_thresh = '1.00';
-	otherwise
-		inp_thresh = argv_minthresh;
+if exist('argv_minthresh','var')
+    inp_thresh = argv_minthresh;
+else
+    if quiet
+        inp_thresh = '1.00';
+    else
+        inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
+    end
 end
 
 inp_thres2 = sscanf(inp_thresh,'%f');
@@ -212,13 +213,14 @@ end
 %%%	2. Default to (1.25) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch ([exist('argv_maxthresh') quiet])
-	case [false false]
-		inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
-	case [false true]
-		inp_thresh = '1.25';
-	otherwise
-		inp_thresh = argv_maxthresh;
+if exist('argv_maxthresh','var')
+    inp_thresh = argv_maxthresh;
+else
+    if quiet
+        inp_thresh = '1.25';
+    else
+        inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
+    end
 end
 
 inp_thres2 = sscanf(inp_thresh,'%f');
@@ -256,27 +258,23 @@ alt_stepmul = 1;
 %%%		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_resolution'))
-	case false
-		switch (InRSS)
-			case false
-				inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
-				resDisc = 'High';
-				rational_resolution = 1e-4;
-			case true
-				inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
-				resDisc = 'VeryHi';
-				rational_resolution = 1e-5;
-			alt_stepmul = 1/2;
-		end
-	case true
-		inp_res = argv_resolution;
+if exist('argv_resolution', 'var' )
+    inp_res = argv_resolution;
+else
+    if (InRSS)
+        inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
+        resDisc = 'VeryHi';
+        rational_resolution = 1e-5;
+        alt_stepmul = 1/2;
+    else
+        inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
+        resDisc = 'High';
+        rational_resolution = 1e-4;
+    end
 end
 
 
-if isempty(inp_res)
-	%% nothing needed here anymore
-else
+if ~isempty(inp_res)
 	if 	strcmpi(inp_res(1),'h')
 		rational_resolution = 1e-4;
 		resDisc = 'High';
@@ -568,11 +566,11 @@ altsRT4(orbitRT4==0)=[];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-switch (exist('argv_plots') || exist('argv_printplots'))
+switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 	case true
 		mainfig = figure;
 
-		if (~(exist('argv_plots')) && exist('argv_printplots'))
+		if (~(exist('argv_plots','var')) && exist('argv_printplots','var'))
 			set(mainfig,'Visible',false);
 		end
 
@@ -607,7 +605,7 @@ switch (exist('argv_plots') || exist('argv_printplots'))
 		plotName = sprintf('%s_%s_s%.3f-%.3f_%s.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 		
 		
-		if (exist('argv_printplots'))
+		if (exist('argv_printplots','var'))
 			print (plotName);
 		end
 
@@ -698,19 +696,18 @@ switch (argv_style)
 end
 
 
-if (exist('argv_plots') || exist('argv_printplots'))
+if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	fh = figure;
 	hold on;
 	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 end
 
-switch ([exist('argv_plots') exist('argv_printplots')])
-	case [false true]
-		set(fh,'Visible','Off');
+if (~exist('argv_plots','var') && exist('argv_printplots','var'))
+    set(fh,'Visible','Off');
 end
 
 
-for i = flipdim(1:length(zoneStart),2)
+for i = flip(1:length(zoneStart),2)
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%		ALL OF THESE VARIABLES CAN BE USED IN TABLE OUTPUT
@@ -726,26 +723,26 @@ for i = flipdim(1:length(zoneStart),2)
 	od 		= orbitRatD(zi:zk);
 	
 	meantt 			= mean(st); 	% mean time value
-	[mintt minti] 	= min(st); 		% min time value and altitude of mintt
-	[maxtt maxti] 	= max(st);		% max ...
+	[mintt, minti] 	= min(st); 		% min time value and altitude of mintt
+	[maxtt, maxti] 	= max(st);		% max ...
 
-	[H1 M1] = sec2hm(meantt); 		% FIXME: unused
-	[H0 M0] = sec2hm(mintt);
-	[H2 M2] = sec2hm(maxtt);		% FIXME: unused (x2)
-	[Hd Md] = sec2hm(maxtt-mintt);	% FIXME: unused (x)
+	[H1, M1] = sec2hm(meantt); 		% FIXME: unused
+	[H0, M0] = sec2hm(mintt);
+	[H2, M2] = sec2hm(maxtt);		% FIXME: unused (x2)
+	[Hd, Md] = sec2hm(maxtt-mintt);	% FIXME: unused (x)
 
 
-	[temp meanti] 	= min(abs(st-meantt));
+	[~, meanti] 	= min(abs(st-meantt));
 
 	meanta 	= ap(meanti); 		% altitude of mean time value
 	minta 	= ap(minti); 		% FIXME: unused
 	maxta 	= ap(maxti); 		% FIXME: unused
 
-	[temp meanalti] = min(abs(alts-meanti));
-	[temp minalti] 	= min(abs(alts-minta));
-	[temp altii] 	= min(abs(alts-meanta));
+	[~, meanalti] = min(abs(alts-meanti));
+	[~, minalti] 	= min(abs(alts-minta));
+	[~, altii] 	= min(abs(alts-meanta));
 
-	[OPH0 OPM0] = sec2hm(orbitalPeriods(minalti));
+	[OPH0, OPM0] = sec2hm(orbitalPeriods(minalti));
 
 	%% swath width size for this altitude
 	sw = swathWidths(altii);
@@ -754,7 +751,7 @@ for i = flipdim(1:length(zoneStart),2)
 	dispfov = 2 * (hFOV_at_altitude(altii) * 180 / pi);
 
 	ts = swathWidths.*orbitalPeriods/360;
-	[sppmin sppI] = min(abs(ts-planetDay));	
+	[sppmin, sppI] = min(abs(ts-planetDay));	
 
 	%% SMA (for convenience?)
 	sma = meanta + R;
@@ -845,15 +842,12 @@ for i = flipdim(1:length(zoneStart),2)
 	
 	disp(qqq);
 
-	switch ([exist('argv_plots') exist('argv_printplots')])
-		case [false false]
-			%% nothing
-		otherwise
-			plot(ap/1000,st/3600,'.-');
+	if ( exist('argv_plots','var') || exist('argv_printplots','var') )
+        plot(ap/1000,st/3600,'.-');
 	end
 end
 
-if (exist('argv_plots') || exist('argv_printplots'))
+if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	hold off;
 	titleString = sprintf('Ideal Zones for [%s] at [%s]',ScannerName,planet);
 	title(titleString);
@@ -875,13 +869,13 @@ if (exist('argv_plots') || exist('argv_printplots'))
 	set(gca,'ygrid','on');
 end
 
-switch ([exist('argv_plots') exist('argv_printplots')])
-	case [true true]
-		print(plotName);
-	case [false true]
-		print(fh,plotName);
+if exist('argv_printplots','var')
+    if exist('argv_plots','var')
+        print(plotName);
+    else
+        print(fh,plotName);
+    end
 end
-
 
 %calculate Single Pass Polar (if it exists)
 if sppmin < 25; %gives us a 25 second window to look
@@ -890,13 +884,13 @@ if sppmin < 25; %gives us a 25 second window to look
 	disp('Sidelap    Altitude   Time to Scan  Swath   Resolution');
 	disp('------------------------------------------------------');
 	for sppSideLap = [1, 1.05, 1.1, 1.3, 1.5]
-		[temp sppI] = min(abs(ts/sppSideLap-planetDay));
+		[~, sppI] = min(abs(ts/sppSideLap-planetDay));
 		sppA = alts(sppI);
 		sppT = orbitalPeriods(sppI);
 		sw = swathWidths(sppI);
 		resd = sw/scan_res;
 		resm = resd*R*pi/180;
-		[Hs Ms] = sec2hm(sppT);
+		[Hs, Ms] = sec2hm(sppT);
 		
 		qqq = sprintf(' %2d%%     %7.3f km  ',sppSideLap*100-100, sppA/1000);
 		qqq = [qqq sprintf('%4ih %04.1fm',Hs,Ms)];
@@ -925,7 +919,7 @@ switch (argv_style)
 		disp('');
 end
 
-if (exist('argv_plots') || exist('argv_printplots'))
+if (exist('argv_plots','var') || exist('argv_printplots','var'))
 		figure;
 		plot(alts/1000,orbitRatD,'ro','markersize',3 ...
 			,alts/1000,orbitRatD,'k.',alts/1000 ...
@@ -953,21 +947,22 @@ if (exist('argv_plots') || exist('argv_printplots'))
 		% y axis settings
 		set(gca,'ygrid','on');
 end
-	
 
-switch ([exist('argv_plots') exist('argv_printplots')])
-	case [true false]
-		pause(360); %% pause so we can see the interactive plots
-	case [true true]
+
+if exist('argv_plots','var')
+    if exist('argv_printplots','var')
 		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 		print (plotName);
 		pause(360); %% pause so we can see the interactive plots
-	case [false true]
+    else
+        pause(360); %% pause so we can see the interactive plots
+    end
+else
+    if exist('argv_printplots','var')
 		set(0,'Visible','Off')
 		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
 		print (plotName);
-	case [false false]
-		%% nothing
+    end
 end
 
 

@@ -22,8 +22,8 @@ debug = false;				%% this is only for developers, to print extra stuffs
 
 
 expect = '';
-if ( exist( 'argin', 'var') && ischar( argin ) )
-    args = strsplit( argin );
+if (exist('argin','var') && ischar(argin))
+    args = strsplit(argin,' ');
 else
     args = {};
 end

@@ -8,8 +8,8 @@ quiet = false;				%% defaults to false
 argv_style = 'forum';		%% defaults to forum output
 tables_only = false;		%% usually, we accompany our tables with extra info.
 debug = false;				%% this is only for developers, to print extra stuffs
-graphExt = '.eps';          %% graphics file extention
-graphFormat = '-depsc';     %% graphics file format
+graphExt = '.png';          %% graphics file extention
+graphFormat = '-dpng';     %% graphics file format
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	0. Process command-line arguments

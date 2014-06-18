@@ -1,7 +1,7 @@
 #!/bin/bash
-if hash matlab 2>/dev/null; then
-	export MLINARG=$@
-	matlab -nodesktop -nosplash -r "inputArg = getenv( 'MLINARG' ); MapSatAltitude( inputArg ); exit;"
-elif hash octave 2>/dev/null; then
-	octave --silent --eval "MapSatAltitude('$@')"
+export MSAINARG=$@
+if hash octave 2>/dev/null; then
+	octave --silent --eval "inputArg = getenv( 'MSAINARG' ); MapSatAltitude( inputArg );"
+elif hash matlab 2>/dev/null; then
+	matlab -nodesktop -nosplash -r "inputArg = getenv( 'MSAINARG' ); MapSatAltitude( inputArg ); exit;"
 fi

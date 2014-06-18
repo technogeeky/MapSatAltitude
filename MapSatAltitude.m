@@ -8,6 +8,8 @@ quiet = false;				%% defaults to false
 argv_style = 'forum';		%% defaults to forum output
 tables_only = false;		%% usually, we accompany our tables with extra info.
 debug = false;				%% this is only for developers, to print extra stuffs
+graphExt = '.eps';          %% graphics file extention
+graphFormat = '-depsc';     %% graphics file format
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	0. Process command-line arguments
@@ -566,20 +568,16 @@ altsRT4(orbitRT4==0)=[];
 
 switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 	case true
-		mainfig = figure;
+		mainfig = figure; hold on;
 
 		if (~(exist('argv_plots','var')) && exist('argv_printplots','var'))
-			set(mainfig,'Visible',false);
+			set(mainfig,'Visible','off');
 		end
 
-		mainplot = plot(...
-			 altsRT2/1000, valOrbitRT2,'oc','markersize',2 ...
-			,altsRT4/1000, valOrbitRT4,'ok','markersize',2 ...
-			,altsRT0/1000, valOrbitRT0,'or','markersize',4 ...
-			,altsRT1/1000, valOrbitRT1,'ob','markersize',5 ...
-		);
-
-
+		mainplot = plot( altsRT2/1000, valOrbitRT2,'oc','MarkerSize',2 );
+		mainplot = plot( altsRT4/1000, valOrbitRT4,'ok','MarkerSize',2 );
+        mainplot = plot( altsRT0/1000, valOrbitRT0,'or','MarkerSize',4 );
+		mainplot = plot( altsRT1/1000, valOrbitRT1,'ob','MarkerSize',5 );
 
 		titleString = sprintf('Ideal Altitudes for %s around %s',ScannerName,planet);
 		title(titleString);
@@ -600,11 +598,11 @@ switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 		% y axis settings
 		set(gca,'ygrid','on');
 
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 		
 		
 		if (exist('argv_printplots','var'))
-			print (plotName);
+			print(graphFormat,plotName);
 		end
 
 	case false
@@ -697,11 +695,11 @@ end
 if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	fh = figure;
 	hold on;
-	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 end
 
 if (~exist('argv_plots','var') && exist('argv_printplots','var'))
-    set(fh,'Visible','Off');
+    set(fh,'Visible','off');
 end
 
 
@@ -869,9 +867,9 @@ end
 
 if exist('argv_printplots','var')
     if exist('argv_plots','var')
-        print(plotName);
+        print(graphFormat,plotName);
     else
-        print(fh,plotName);
+        print(fh,graphFormat,plotName);
     end
 end
 
@@ -918,11 +916,11 @@ switch (argv_style)
 end
 
 if (exist('argv_plots','var') || exist('argv_printplots','var'))
-		figure;
-		plot(alts/1000,orbitRatD,'ro','markersize',3 ...
-			,alts/1000,orbitRatD,'k.',alts/1000 ...
-			,idealThreshold*minthresh,'b' ...
-			,alts/1000,idealThreshold.*maxthresh,'g');
+		figure; hold on;
+		plot(alts/1000,orbitRatD,'ro','MarkerSize',3);
+		plot(alts/1000,orbitRatD,'k.');
+		plot(alts/1000,idealThreshold.*minthresh,'b');
+		plot(alts/1000,idealThreshold.*maxthresh,'g');
 
 		titleString = sprintf('Resonance Structure for [%s] at [%s]',ScannerName,planet);
 		title(titleString);
@@ -949,17 +947,17 @@ end
 
 if exist('argv_plots','var')
     if exist('argv_printplots','var')
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
-		print (plotName);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		print(graphFormat,plotName);
 		pause(360); %% pause so we can see the interactive plots
     else
         pause(360); %% pause so we can see the interactive plots
     end
 else
     if exist('argv_printplots','var')
-		set(0,'Visible','Off')
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
-		print (plotName);
+		set(gca,'Visible','off')
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		print(graphFormat,plotName);
     end
 end
 

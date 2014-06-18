@@ -1,6 +1,4 @@
-#!/usr/bin/octave -qf
-clear all
-close all
+function MapSatAltitude( argin )
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -10,6 +8,8 @@ quiet = false;				%% defaults to false
 argv_style = 'forum';		%% defaults to forum output
 tables_only = false;		%% usually, we accompany our tables with extra info.
 debug = false;				%% this is only for developers, to print extra stuffs
+graphExt = '.png';          %% graphics file extention
+graphFormat = '-dpng';     %% graphics file format
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%	0. Process command-line arguments
@@ -24,8 +24,14 @@ debug = false;				%% this is only for developers, to print extra stuffs
 
 
 expect = '';
-args = argv();
-for i = 1:nargin
+if (exist('argin','var') && ischar(argin))
+    args = strsplit(argin,' ');
+else
+    args = {};
+end
+
+
+for i = 1:length( args )
 	%% double arguments
 	switch (args{i})
 		case {'-p', '--planet'}
@@ -114,11 +120,10 @@ end
 %%%	1. What scanner are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_scanner'))
-	case false
-		scanner = input('Scanner name? ', 's');
-	case true
-		scanner = argv_scanner;
+if exist('argv_scanner','var')
+	scanner = argv_scanner;
+else
+	scanner = input('Scanner name? ', 's');
 end
 
 scanners = parseScannerInfo();
@@ -138,11 +143,10 @@ if (~quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); end;
 %%%	2. What planet are we discussing?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_planet'))
-	case false
-		planet = input('Planet name? ','s');
-	case true
-		planet = argv_planet;
+if exist('argv_planet','var')
+	planet = argv_planet;
+else
+	planet = input('Planet name? ','s');
 end
 
 planets = parsePlanetInfo();
@@ -186,13 +190,14 @@ end
 %%%	2. Default to (1.00) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch ([exist('argv_minthresh') quiet])
-	case [false false]
-		inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
-	case [false true]
-		inp_thresh = '1.00';
-	otherwise
-		inp_thresh = argv_minthresh;
+if exist('argv_minthresh','var')
+    inp_thresh = argv_minthresh;
+else
+    if quiet
+        inp_thresh = '1.00';
+    else
+        inp_thresh = input('Minimum Sidelap? (Default is 1.00. Press Enter to skip) : ','s');
+    end
 end
 
 inp_thres2 = sscanf(inp_thresh,'%f');
@@ -208,13 +213,14 @@ end
 %%%	2. Default to (1.25) otherwise.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch ([exist('argv_maxthresh') quiet])
-	case [false false]
-		inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
-	case [false true]
-		inp_thresh = '1.25';
-	otherwise
-		inp_thresh = argv_maxthresh;
+if exist('argv_maxthresh','var')
+    inp_thresh = argv_maxthresh;
+else
+    if quiet
+        inp_thresh = '1.25';
+    else
+        inp_thresh = input('Maximum Sidelap? (Default is 1.25. Press Enter to skip) : ','s');
+    end
 end
 
 inp_thres2 = sscanf(inp_thresh,'%f');
@@ -252,27 +258,23 @@ alt_stepmul = 1;
 %%%		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-switch (exist('argv_resolution'))
-	case false
-		switch (InRSS)
-			case false
-				inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
-				resDisc = 'High';
-				rational_resolution = 1e-4;
-			case true
-				inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
-				resDisc = 'VeryHi';
-				rational_resolution = 1e-5;
-			alt_stepmul = 1/2;
-		end
-	case true
-		inp_res = argv_resolution;
+if exist('argv_resolution', 'var' )
+    inp_res = argv_resolution;
+else
+    if (InRSS)
+        inp_res = input('Numerical Resolution? ("Uber",["Very"],"Hi", or "Low".) : ','s');
+        resDisc = 'VeryHi';
+        rational_resolution = 1e-5;
+        alt_stepmul = 1/2;
+    else
+        inp_res = input('Numerical Resolution? ("Uber","Very",["Hi"], or "Low".) : ','s');
+        resDisc = 'High';
+        rational_resolution = 1e-4;
+    end
 end
 
 
-if isempty(inp_res)
-	%% nothing needed here anymore
-else
+if ~isempty(inp_res)
 	if 	strcmpi(inp_res(1),'h')
 		rational_resolution = 1e-4;
 		resDisc = 'High';
@@ -564,22 +566,18 @@ altsRT4(orbitRT4==0)=[];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-switch (exist('argv_plots') || exist('argv_printplots'))
+switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 	case true
-		mainfig = figure;
+		mainfig = figure; hold on;
 
-		if (~(exist('argv_plots')) && exist('argv_printplots'))
-			set(mainfig,'Visible',false);
+		if (~(exist('argv_plots','var')) && exist('argv_printplots','var'))
+			set(mainfig,'Visible','off');
 		end
 
-		mainplot = plot(...
-			 altsRT2/1000, valOrbitRT2,'oc','markersize',2 ...
-			,altsRT4/1000, valOrbitRT4,'ok','markersize',2 ...
-			,altsRT0/1000, valOrbitRT0,'or','markersize',4 ...
-			,altsRT1/1000, valOrbitRT1,'ob','markersize',5 ...
-		);
-
-
+		mainplot = plot( altsRT2/1000, valOrbitRT2,'oc','MarkerSize',2 );
+		mainplot = plot( altsRT4/1000, valOrbitRT4,'ok','MarkerSize',2 );
+        mainplot = plot( altsRT0/1000, valOrbitRT0,'or','MarkerSize',4 );
+		mainplot = plot( altsRT1/1000, valOrbitRT1,'ob','MarkerSize',5 );
 
 		titleString = sprintf('Ideal Altitudes for %s around %s',ScannerName,planet);
 		title(titleString);
@@ -600,11 +598,11 @@ switch (exist('argv_plots') || exist('argv_printplots'))
 		% y axis settings
 		set(gca,'ygrid','on');
 
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 		
 		
-		if (exist('argv_printplots'))
-			print (plotName);
+		if (exist('argv_printplots','var'))
+			print(graphFormat,plotName);
 		end
 
 	case false
@@ -694,15 +692,14 @@ switch (argv_style)
 end
 
 
-if (exist('argv_plots') || exist('argv_printplots'))
+if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	fh = figure;
 	hold on;
-	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot.png',planet,ScannerName,minthresh,maxthresh,resDisc);
+	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 end
 
-switch ([exist('argv_plots') exist('argv_printplots')])
-	case [false true]
-		set(fh,'Visible','Off');
+if (~exist('argv_plots','var') && exist('argv_printplots','var'))
+    set(fh,'Visible','off');
 end
 
 
@@ -722,26 +719,26 @@ for i = flipdim(1:length(zoneStart),2)
 	od 		= orbitRatD(zi:zk);
 	
 	meantt 			= mean(st); 	% mean time value
-	[mintt minti] 	= min(st); 		% min time value and altitude of mintt
-	[maxtt maxti] 	= max(st);		% max ...
+	[mintt, minti] 	= min(st); 		% min time value and altitude of mintt
+	[maxtt, maxti] 	= max(st);		% max ...
 
-	[H1 M1] = sec2hm(meantt); 		% FIXME: unused
-	[H0 M0] = sec2hm(mintt);
-	[H2 M2] = sec2hm(maxtt);		% FIXME: unused (x2)
-	[Hd Md] = sec2hm(maxtt-mintt);	% FIXME: unused (x)
+	[H1, M1] = sec2hm(meantt); 		% FIXME: unused
+	[H0, M0] = sec2hm(mintt);
+	[H2, M2] = sec2hm(maxtt);		% FIXME: unused (x2)
+	[Hd, Md] = sec2hm(maxtt-mintt);	% FIXME: unused (x)
 
 
-	[temp meanti] 	= min(abs(st-meantt));
+	[~, meanti] 	= min(abs(st-meantt));
 
 	meanta 	= ap(meanti); 		% altitude of mean time value
 	minta 	= ap(minti); 		% FIXME: unused
 	maxta 	= ap(maxti); 		% FIXME: unused
 
-	[temp meanalti] = min(abs(alts-meanti));
-	[temp minalti] 	= min(abs(alts-minta));
-	[temp altii] 	= min(abs(alts-meanta));
+	[~, meanalti] = min(abs(alts-meanti));
+	[~, minalti] 	= min(abs(alts-minta));
+	[~, altii] 	= min(abs(alts-meanta));
 
-	[OPH0 OPM0] = sec2hm(orbitalPeriods(minalti));
+	[OPH0, OPM0] = sec2hm(orbitalPeriods(minalti));
 
 	%% swath width size for this altitude
 	sw = swathWidths(altii);
@@ -750,7 +747,7 @@ for i = flipdim(1:length(zoneStart),2)
 	dispfov = 2 * (hFOV_at_altitude(altii) * 180 / pi);
 
 	ts = swathWidths.*orbitalPeriods/360;
-	[sppmin sppI] = min(abs(ts-planetDay));	
+	[sppmin, sppI] = min(abs(ts-planetDay));	
 
 	%% SMA (for convenience?)
 	sma = meanta + R;
@@ -841,15 +838,12 @@ for i = flipdim(1:length(zoneStart),2)
 	
 	disp(qqq);
 
-	switch ([exist('argv_plots') exist('argv_printplots')])
-		case [false false]
-			%% nothing
-		otherwise
-			plot(ap/1000,st/3600,'.-');
+	if ( exist('argv_plots','var') || exist('argv_printplots','var') )
+        plot(ap/1000,st/3600,'.-');
 	end
 end
 
-if (exist('argv_plots') || exist('argv_printplots'))
+if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	hold off;
 	titleString = sprintf('Ideal Zones for [%s] at [%s]',ScannerName,planet);
 	title(titleString);
@@ -871,13 +865,13 @@ if (exist('argv_plots') || exist('argv_printplots'))
 	set(gca,'ygrid','on');
 end
 
-switch ([exist('argv_plots') exist('argv_printplots')])
-	case [true true]
-		print(plotName);
-	case [false true]
-		print(fh,plotName);
+if exist('argv_printplots','var')
+    if exist('argv_plots','var')
+        print(graphFormat,plotName);
+    else
+        print(fh,graphFormat,plotName);
+    end
 end
-
 
 %calculate Single Pass Polar (if it exists)
 if sppmin < 25; %gives us a 25 second window to look
@@ -886,13 +880,13 @@ if sppmin < 25; %gives us a 25 second window to look
 	disp('Sidelap    Altitude   Time to Scan  Swath   Resolution');
 	disp('------------------------------------------------------');
 	for sppSideLap = [1, 1.05, 1.1, 1.3, 1.5]
-		[temp sppI] = min(abs(ts/sppSideLap-planetDay));
+		[~, sppI] = min(abs(ts/sppSideLap-planetDay));
 		sppA = alts(sppI);
 		sppT = orbitalPeriods(sppI);
 		sw = swathWidths(sppI);
 		resd = sw/scan_res;
 		resm = resd*R*pi/180;
-		[Hs Ms] = sec2hm(sppT);
+		[Hs, Ms] = sec2hm(sppT);
 		
 		qqq = sprintf(' %2d%%     %7.3f km  ',sppSideLap*100-100, sppA/1000);
 		qqq = [qqq sprintf('%4ih %04.1fm',Hs,Ms)];
@@ -921,12 +915,12 @@ switch (argv_style)
 		disp('');
 end
 
-if (exist('argv_plots') || exist('argv_printplots'))
-		figure;
-		plot(alts/1000,orbitRatD,'ro','markersize',3 ...
-			,alts/1000,orbitRatD,'k.',alts/1000 ...
-			,idealThreshold*minthresh,'b' ...
-			,alts/1000,idealThreshold.*maxthresh,'g');
+if (exist('argv_plots','var') || exist('argv_printplots','var'))
+		figure; hold on;
+		plot(alts/1000,orbitRatD,'ro','MarkerSize',3);
+		plot(alts/1000,orbitRatD,'k.');
+		plot(alts/1000,idealThreshold.*minthresh,'b');
+		plot(alts/1000,idealThreshold.*maxthresh,'g');
 
 		titleString = sprintf('Resonance Structure for [%s] at [%s]',ScannerName,planet);
 		title(titleString);
@@ -949,21 +943,22 @@ if (exist('argv_plots') || exist('argv_printplots'))
 		% y axis settings
 		set(gca,'ygrid','on');
 end
-	
 
-switch ([exist('argv_plots') exist('argv_printplots')])
-	case [true false]
+
+if exist('argv_plots','var')
+    if exist('argv_printplots','var')
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		print(graphFormat,plotName);
 		pause(360); %% pause so we can see the interactive plots
-	case [true true]
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
-		print (plotName);
-		pause(360); %% pause so we can see the interactive plots
-	case [false true]
-		set(0,'Visible','Off')
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances.png',planet,ScannerName,minthresh,maxthresh,resDisc);
-		print (plotName);
-	case [false false]
-		%% nothing
+    else
+        pause(360); %% pause so we can see the interactive plots
+    end
+else
+    if exist('argv_printplots','var')
+		set(gca,'Visible','off')
+		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		print(graphFormat,plotName);
+    end
 end
 
 

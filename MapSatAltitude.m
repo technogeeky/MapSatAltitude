@@ -566,47 +566,62 @@ altsRT4(orbitRT4==0)=[];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
-	case true
-		mainfig = figure; hold on;
+if ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 
-		if (~(exist('argv_plots','var')) && exist('argv_printplots','var'))
-			set(mainfig,'Visible','off');
-		end
+	mainfig = figure; hold on;
 
-		mainplot = plot( altsRT2/1000, valOrbitRT2,'oc','MarkerSize',2 );
-		mainplot = plot( altsRT4/1000, valOrbitRT4,'ok','MarkerSize',2 );
-        mainplot = plot( altsRT0/1000, valOrbitRT0,'or','MarkerSize',4 );
-		mainplot = plot( altsRT1/1000, valOrbitRT1,'ob','MarkerSize',5 );
+	if (~(exist('argv_plots','var')) && exist('argv_printplots','var'))
+		set(mainfig,'Visible','off');
+    end
+    
+    noPlots = 0;
+    
+    if ~isempty(altsRT2)
+        plot( altsRT2/1000, valOrbitRT2,'oc','MarkerSize',2 );
+        noPlots = noPlots + 1;
+        legendText{noPlots} = 'Suboptimal';
+    end
+    if ~isempty(altsRT4)
+        plot( altsRT4/1000, valOrbitRT4,'ok','MarkerSize',2 );
+        noPlots = noPlots + 1;
+        legendText{noPlots} = 'Near-Resonant';
+    end
+    if ~isempty(altsRT0)
+        plot( altsRT0/1000, valOrbitRT0,'or','MarkerSize',4 );
+        noPlots = noPlots + 1;
+        legendText{noPlots} = 'Resonant';
+    end
+    if ~isempty(altsRT1)
+        plot( altsRT1/1000, valOrbitRT1,'ob','MarkerSize',5 );
+        noPlots = noPlots + 1;
+        legendText{noPlots} = 'Ideal';
+    end
 
-		titleString = sprintf('Ideal Altitudes for %s around %s',ScannerName,planet);
-		title(titleString);
+	titleString = sprintf('Ideal Altitudes for %s around %s',ScannerName,planet);
+	title(titleString);
 
-		xlabel('Altitude (km)');
-		ylabel('Orbital Period (h)');
+	xlabel('Altitude (km)');
+	ylabel('Orbital Period (h)');
 
-		legend('Suboptimal','Near-Resonant','Resonant','Ideal','location','northwest')
-		legend('location','northwest');
+	legend(legendText,'Location','NorthWest');
 
-		%% gca is 'get current axis'
+	%% gca is 'get current axis'
 
-		%	x axis settings
-		set(gca,'xminortick','on');
-		set(gca,'xgrid','on');
-		set(gca,'xminorgrid','on');
+	%	x axis settings
+	set(gca,'xminortick','on');
+	set(gca,'xgrid','on');
+	set(gca,'xminorgrid','on');
 
-		% y axis settings
-		set(gca,'ygrid','on');
+	% y axis settings
+	set(gca,'ygrid','on');
 
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
-		
-		
-		if (exist('argv_printplots','var'))
-			print(graphFormat,plotName);
-		end
+	plotName = sprintf('%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+	
+	
+	if (exist('argv_printplots','var'))
+		print(graphFormat,plotName);
+	end
 
-	case false
-		%% nothing
 end
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -851,8 +866,7 @@ if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	xlabel('Altitude (km)');
 	ylabel('Scan Time (h)');
 
-	legend('Ideal Zone','location','northwest')
-	legend('location','northwest');
+	legend('Ideal Zone','Location','NorthWest')
 
 	%% gca is 'get current axis'
 
@@ -930,8 +944,7 @@ if (exist('argv_plots','var') || exist('argv_printplots','var'))
 
 		lower = sprintf('Lower Sidelap Bound (%4.2f)',minthresh);
 		upper = sprintf('Upper Sidelap Bound (%4.2f)',maxthresh);
-		legend('Resonance Range', 'Resonance Altitude',lower,upper,'location','northwest')
-		legend('location','northwest');
+		legend({'Resonance Range', 'Resonance Altitude',lower,upper},'Location','NorthWest')
 
 		%% gca is 'get current axis'
 

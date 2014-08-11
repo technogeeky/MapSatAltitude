@@ -136,7 +136,7 @@ if isempty(S)
 end
 
 ScannerName = S.Name;
-
+LongName = S.LongName;
 if (~quiet) disp(sprintf('[%s] Ideal Altitude Calculator.',S.LongName)); end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -573,20 +573,32 @@ switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 		if (~(exist('argv_plots','var')) && exist('argv_printplots','var'))
 			set(mainfig,'Visible','off');
 		end
+		
+		if ((length(altsRT2)!=0) && (length(valOrbitRT2)!=0))
+			mainplot = plot( altsRT2/1000, valOrbitRT2,'oc','MarkerSize',2 );
+			legend(mainplot,'Suboptimal (OK!)','location','northwest')
+			
+		end
+		if ((length(altsRT4)!=0) && (length(valOrbitRT4)!=0))
+			mainplot = plot( altsRT4/1000, valOrbitRT4,'ok','MarkerSize',2 );
+			legend(mainplot,'Near-Resonant (BAD!)','location','northwest')
+		end
 
-		mainplot = plot( altsRT2/1000, valOrbitRT2,'oc','MarkerSize',2 );
-		mainplot = plot( altsRT4/1000, valOrbitRT4,'ok','MarkerSize',2 );
-        mainplot = plot( altsRT0/1000, valOrbitRT0,'or','MarkerSize',4 );
-		mainplot = plot( altsRT1/1000, valOrbitRT1,'ob','MarkerSize',5 );
+		if ((length(altsRT0)!=0) && (length(valOrbitRT0)!=0))
+			mainplot = plot( altsRT0/1000, valOrbitRT0,'or','MarkerSize',4 );
+			legend(mainplot,'Resonant (BAD!)','location','northwest')
+		end
+		if ((length(altsRT1)!=0) && (length(valOrbitRT1)!=0))
+			mainplot = plot( altsRT1/1000, valOrbitRT1,'ob','MarkerSize',5 );
+			legend(mainplot,'Ideal (GOOD!)','location','northwest')
+		end
 
-		titleString = sprintf('Ideal Altitudes for %s around %s',ScannerName,planet);
+		titleString = sprintf('Ideal Altitudes for [%s] (%s) around [%s]',ScannerName,LongName,planet);
 		title(titleString);
 
 		xlabel('Altitude (km)');
 		ylabel('Orbital Period (h)');
 
-		legend('Suboptimal','Near-Resonant','Resonant','Ideal','location','northwest')
-		legend('location','northwest');
 
 		%% gca is 'get current axis'
 
@@ -598,7 +610,7 @@ switch ( exist( 'argv_plots', 'var' ) || exist('argv_printplots', 'var' ) )
 		% y axis settings
 		set(gca,'ygrid','on');
 
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		plotName = sprintf('Altitude_%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 		
 		
 		if (exist('argv_printplots','var'))
@@ -695,7 +707,7 @@ end
 if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	fh = figure;
 	hold on;
-	plotName = sprintf('%s_%s_s%.3f-%.3f_%s-dotplot%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+	plotName = sprintf('DotPlot_%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 end
 
 if (~exist('argv_plots','var') && exist('argv_printplots','var'))
@@ -839,20 +851,23 @@ for i = flipdim(1:length(zoneStart),2)
 	disp(qqq);
 
 	if ( exist('argv_plots','var') || exist('argv_printplots','var') )
-        plot(ap/1000,st/3600,'.-');
+		if( (length(ap)!=0) && (length(st)!=0))
+        		handle = plot(ap/1000,st/3600,'.-');
+		end
 	end
 end
 
 if (exist('argv_plots','var') || exist('argv_printplots','var'))
 	hold off;
-	titleString = sprintf('Ideal Zones for [%s] at [%s]',ScannerName,planet);
+	titleString = sprintf('Ideal Zones for [%s] (%s) at [%s]',ScannerName,LongName,planet);
 	title(titleString);
 
 	xlabel('Altitude (km)');
 	ylabel('Scan Time (h)');
 
-	legend('Ideal Zone','location','northwest')
-	legend('location','northwest');
+	if (exist('handle','var'))
+		legend(handle,'Ideal Zone','location','northwest');
+	end
 
 	%% gca is 'get current axis'
 
@@ -874,7 +889,7 @@ if exist('argv_printplots','var')
 end
 
 %calculate Single Pass Polar (if it exists)
-if sppmin < 25; %gives us a 25 second window to look
+if ((exist('sppmin','var')) && (sppmin < 25)); %gives us a 25 second window to look
     disp('');
 	disp('A single-pass polar orbit exists! Orbit at exactly 90 degrees inclination.');
 	disp('Sidelap    Altitude   Time to Scan  Swath   Resolution');
@@ -922,7 +937,7 @@ if (exist('argv_plots','var') || exist('argv_printplots','var'))
 		plot(alts/1000,idealThreshold.*minthresh,'b');
 		plot(alts/1000,idealThreshold.*maxthresh,'g');
 
-		titleString = sprintf('Resonance Structure for [%s] at [%s]',ScannerName,planet);
+		titleString = sprintf('Resonance Structure for [%s] (%s) at [%s]',ScannerName,LongName,planet);
 		title(titleString);
 
 		xlabel('Altitude (km)');
@@ -947,7 +962,7 @@ end
 
 if exist('argv_plots','var')
     if exist('argv_printplots','var')
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		plotName = sprintf('Resonances_%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 		print(graphFormat,plotName);
 		pause(360); %% pause so we can see the interactive plots
     else
@@ -955,8 +970,8 @@ if exist('argv_plots','var')
     end
 else
     if exist('argv_printplots','var')
-		set(gca,'Visible','off')
-		plotName = sprintf('%s_%s_s%.3f-%.3f_%s-resonances%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
+		set(gca,'Visible','on')
+		plotName = sprintf('Resonances_%s_%s_s%.3f-%.3f_%s%s',planet,ScannerName,minthresh,maxthresh,resDisc,graphExt);
 		print(graphFormat,plotName);
     end
 end

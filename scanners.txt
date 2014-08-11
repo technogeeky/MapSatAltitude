@@ -2,8 +2,11 @@ Name	FOV	HalfFOV	AltitudeMin	AltitudeIdeal	AltitudeMax	LongName
 RADAR	5.00	2.50	5000.00		5000.00		500000.00	SCAN RADAR Altimetry Sensor
 Multi	4.00	2.00	5000.00		250000.00	500000.00	SCAN Multispectral Sensor
 SAR	2.00	1.00	5000.00		750000.00	800000.00	SCAN SAR Altimetry Sensor
-KSmall	2.20	1.10	250000.00	250000.00	250000.00	KE-S210 Compact Survey Unit
-KMedium	2.20	1.10	1200000.00	1200000.00	1200000.00	KE-S110 Medium Survey Unit
+%KSmall	2.20	1.10	250000.00	250000.00	250000.00	[Kethane] KE-S210 Compact Survey Unit
+%KMedium2.20	1.10	1200000.00	1200000.00	1200000.00	[Kethane] KE-S110 Medium Survey Unit
+ORS	4.00	2.00	5000.00		100000.00	750000.00	KSPI or MKS or Karbonite Scanner
+EPL	2.00	1.00	5000.00		50000.00	250000.00	Magnetometer
+
 %%
 %% Note that in order to keep whitespace parsing correctly, only genuine tab characers should
 %% 	be used as delimters.

@@ -7,7 +7,7 @@ SCANNERS="RADAR Multi SAR ORS EPL"
 #rm -rf planets
 #mkdir planets
 
-for p in "Gilly" "Minmus"
+for p in "Gilly" "Minmus" "Dres"
 do
 	echo "on $p"
 	for s in $SCANNERS; do
@@ -31,7 +31,7 @@ done
 
 
 # all the normies go here
-for p in "Moho" "Eve" "Kerbin" "Mun" "Duna" "Ike" "Dres" "Laythe" "Vall" "Tylo" "Bop"
+for p in "Moho" "Eve" "Kerbin" "Mun" "Duna" "Ike" "Laythe" "Vall" "Tylo" "Bop"
 do
 	echo "on $p"
 	for s in $SCANNERS; do
@@ -49,7 +49,7 @@ for p in "Pol"
 do
 	echo "on $p"
 	for s in $SCANNERS; do
-		./MapSatAltitude.sh -p $p -s $s -r Very -pp -smin 1.00 -smax 3.00 -os forum >> $p.txt
+		./MapSatAltitude.sh -p $p -s $s -r Very -pp -smin 1.00 -smax 3.00 -q -os forum >> $p.txt
 	done
 	mv $p_*.png planets
 	mv $p.txt planets
@@ -71,7 +71,7 @@ for p in "Eeloo"
 do
 	echo "on $p"
 	for s in $SCANNERS; do
-		./MapSatAltitude.sh -p $p -s $s -r Hi -pp -q -os forum >> $p.txt
+		./MapSatAltitude.sh -p $p -s $s -r Low -pp -q -os forum >> $p.txt
 	done
 	mv $p_*.png planets
 	mv $p.txt planets

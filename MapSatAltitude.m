@@ -83,7 +83,7 @@ for i = 1:length( args )
 			disp('\t---------------------------------------------------------------------------------------------------');
 			disp('Planets and Scanners must be in their respective files.');
 			disp('Resolution must be one of: [Ultra, VeryHi, High, Low].');
-			disp('Output Style must be one of: [text,forum,csv,markdown].');
+			disp('Output Style must be one of: [text,forum,csv,csv-github,markdown].');
 			disp('NOTE: In order to have no STDIN input requests, you must specify all of:');
 			disp('  planet, scanner, resolution, sidelap-min, sidelap-max');
 			quit;
@@ -102,10 +102,10 @@ for i = 1:length( args )
 				case 'output-style'
 					argv_style = args{i};
 					switch (argv_style)
-						case {'text','csv','markdown','forum'}
+						case {'text','csv','csv-github','markdown','forum'}
 							%% this is fine
 						otherwise
-							printf('\ninvalid output-style: %s is not one of: [text, csv, markdown, forum]\n',argv_style);
+							printf('\ninvalid output-style: %s is not one of: [text, csv, csv-github, markdown, forum]\n',argv_style);
 							return;
 					end
 				otherwise
@@ -681,25 +681,28 @@ end
 
 switch (argv_style)
 	case {'forum','text'}
-		disp('                    Altitude                Inc.       Orbital   Time to Scan          Eff.  Swath  Resolution');
-		disp('  UEQx   EQx Sidelap  Ideal     +/- Error               Period      Total    +/- Error  FOV   Width (deg)   (km)');
+		disp('              Altitude                Inc.       Orbital   Time to Scan          Eff.  Swath  Resolution');
+		disp('  UEQx Sidelap  Ideal     +/- Error               Period      Total    +/- Error  FOV   Width (deg)   (km)');
 		disp('====================================================================================================================');
-		%%%%%%    17    29 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
-		%%%%%%    18    31 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
-		%%%%%%    19    33 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
-		%%%%%%    23    40 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
-		%%%%%%    25    44 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
+		%%%%%%    17 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
+		%%%%%%    18 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
+		%%%%%%    19 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
+		%%%%%%    23 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
+		%%%%%%    25 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
 	case 'csv'
-		disp('Scanner,UEQx,EQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
+		disp('Scanner,UEQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
+	case 'csv-github'
+		disp('Scanner,UEQx,Sidelap,Altitude,Inclination,OrbitalPeriod,ScanTime,EffFOV');
 	case 'markdown'
-		disp('  UEQx | EQx|Sidelap| Altitude |    Error  | Inc.    | O. Period| Scan Time |    Error| FOV  |Swath|Res (°)|Res (m)');
-		disp('-------|----|-------|----------|-----------|---------|----------|-----------|---------|------|-----|-------|--------');		%%%%%%    17    29 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
-		%%%%%%    18    31 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
-		%%%%%%    19    33 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
-		%%%%%%    23    40 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
-		%%%%%%    25    44 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
+		disp(' UEQx|Sidelap| Altitude |    Error  | Inc.    | O. Period| Scan Time |    Error| FOV  |Swath|Res (°)|Res (m)');
+		disp('-----|-------|----------|-----------|---------|----------|-----------|---------|------|-----|-------|--------');
+		%%%%%%    17 (1.10)  782.176 km +/- 1.51 km (80.07°)   6h 38.9m    96h 24.4m +/- 13.4m (3.5°)  14 m (0.07°) 0.238 km
+		%%%%%%    18 (1.09)  739.453 km +/- 1.53 km (80.72°)   6h 13.2m    96h 24.0m +/- 14.1m (3.4°)  13 m (0.06°) 0.221 km
+		%%%%%%    19 (1.04)  701.102 km +/- 1.56 km (81.29°)   5h 50.5m    96h 23.5m +/- 15.0m (3.2°)  11 m (0.06°) 0.199 km
+		%%%%%%    23 (1.24)  695.092 km +/- 1.57 km (81.37°)   5h 47.0m   115h 40.0m +/- 18.3m (3.2°)  11 m (0.06°) 0.195 km
+		%%%%%%    25 (1.16)  639.982 km +/- 1.62 km (82.16°)   5h 15.4m   115h 39.2m +/- 20.1m (3.0°)   9 m (0.05°) 0.165 km
 	otherwise
-		printf('\ninvalid output-style: %s is not one of: [text, csv, markdown, forum]\n',argv_style);
+		printf('\ninvalid output-style: %s is not one of: [text, csv, csv-github, markdown, forum]\n',argv_style);
 		return;
 end
 
@@ -796,14 +799,13 @@ for i = flipdim(1:length(zoneStart),2)
 			end
 		case {'csv'}
 			qqq = '';
-		   %qqq = [qqq sprintf('%4i',			i)];
-		    qqq = [qqq sprintf('%-5s',			ScannerName)];			% this is different
-			qqq = [qqq sprintf(',%5d',			orbitRatN(minalti))];
-			qqq = [qqq sprintf(',%5d',			orbitRatD(minalti))];
+		       %qqq = [qqq sprintf('%4i',			i)];
+		    	qqq = [qqq sprintf('%-5s',			ScannerName)];			% this is different
+			qqq = [qqq sprintf(',%5d',		orbitRatD(minalti))];
 			qqq = [qqq sprintf(',%4.2f', 		orbitRatD(minalti)./idealThreshold(minalti))];
-		   %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
-			qqq = [qqq sprintf(',%8.3f km',		meanta/1000)];
-			qqq = [qqq sprintf(',%3.2f km',	altRa/1000)];
+		       %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
+			qqq = [qqq sprintf(',%8.3f +/- %3.2f km',		meanta/1000,altRa/1000)];
+		       %qqq = [qqq sprintf(',%3.2f km',	altRa/1000)];
 			qqq = [qqq sprintf(',%03.2f°',	tgtInclination(altii))];
 			qqq = [qqq sprintf(',%3dh %04.1fm',	round(OPH0),OPM0)];
 			qqq = [qqq sprintf(',%5dh %04.1fm',	round(H0),M0)];
@@ -817,10 +819,32 @@ for i = flipdim(1:length(zoneStart),2)
 			else
 				qqq = [qqq sprintf(',%#4.3f km', resm/1000)];
 			end
+		case {'csv-github'}
+			qqq = '';
+		       %qqq = [qqq sprintf('%4i',			i)];
+			qqq = [qqq sprintf('%-5s',			ScannerName)];			% this is different
+			qqq = [qqq sprintf(',%5d',			orbitRatD(minalti))];
+			qqq = [qqq sprintf(',%4.2f', 		orbitRatD(minalti)./idealThreshold(minalti))];
+		       %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
+			qqq = [qqq sprintf(',%8.3f +/- %3.2f km',		meanta/1000,altRa/1000)];
+		       %qqq = [qqq sprintf(',%8.3f km',		meanta/1000)];
+		       %qqq = [qqq sprintf(',%3.2f km',	altRa/1000)];
+			qqq = [qqq sprintf(',%03.2f°',	tgtInclination(altii))];
+			qqq = [qqq sprintf(',%3dh %04.1fm',	round(OPH0),OPM0)];
+			qqq = [qqq sprintf(',%5dh %04.1fm +/- %04.1fm',	round(H0),M0,Md)];
+			%qqq = [qqq sprintf(',%04.1fh %04.1fm',	Hd, Md)];
+			qqq = [qqq sprintf(',%3.1f°',		dispfov)];
+%			qqq = [qqq sprintf(',% 3.0f m',		sw)];
+%			qqq = [qqq sprintf(',%03.2f°',	resd)];
+%
+%			if resm < 100
+%				qqq = [qqq sprintf(',%#2.2f m', resm)];
+%			else
+%				qqq = [qqq sprintf(',%#4.3f km', resm/1000)];
+%			end
 		case 'markdown'
 			qqq = '';
 		   %qqq = [qqq sprintf('%4i',			i)];
-			qqq = [qqq sprintf('%5d',			orbitRatN(minalti))];
 			qqq = [qqq sprintf('|%5d',			orbitRatD(minalti))];
 			qqq = [qqq sprintf('|(%4.2f)', 		orbitRatD(minalti)./idealThreshold(minalti))];
 		   %qqq = [qqq sprintf('|%7.3f km',		sma/1000)];

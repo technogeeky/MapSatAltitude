@@ -1,4 +1,4 @@
-Planet,Scanner,UEQx,Sidelap,Altitude,Inclination,OrbitalPeriod,ScanTime,EffFOV
+**Planet**,**Scanner**,UEQx,Sidelap,Altitude,Inclination,OrbitalPeriod,ScanTime,EffFOV
 Kerbin,SAR,  164,1.21, 798.889 +/- 0.26 km,75.16°,  1h 32.2m,  125h 59.1m +/- 02.1m,2.0°
 Kerbin,SAR,  137,1.01, 796.565 +/- 0.38 km,75.20°,  1h 31.9m,  104h 58.5m +/- 02.6m,2.0°
 Kerbin,SAR,  145,1.07, 795.527 +/- 0.35 km,75.22°,  1h 31.8m,  110h 59.0m +/- 02.5m,2.0°

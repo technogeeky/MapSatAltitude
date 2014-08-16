@@ -106,7 +106,7 @@ Kerbin,Multi,  362,1.06, 198.742 +/- 0.07 km,798.742 km,83.66°,  0h 39.8m,  119
 Kerbin,Multi,  353,1.03, 198.665 +/- 0.07 km,798.665 km,83.66°,  0h 39.8m,  116h 59.5m +/- 00.9m,3.2°
 Kerbin,Multi,  344,1.00, 198.587 +/- 0.07 km,798.587 km,83.66°,  0h 39.8m,  113h 59.5m +/- 00.9m,3.2°
 
-Planet,Scanner,UEQx,Sidelap,Altitude,SMA,Inclination,OrbitalPeriod,ScanTime,EffFOV
+<b>Planet</b>,<b>Scanner</b>,*UEQx*,!Sidelap,**Altitude**,SMA,Inclination,OrbitalPeriod,ScanTime,EffFOV
 Kerbin,ORS,   79,1.09, 741.393 +/- 1.21 km,1341.393 km,76.09°,  1h 26.5m,   56h 57.2m +/- 04.6m,4.0°
 Kerbin,ORS,   76,1.02, 727.747 +/- 1.31 km,1327.747 km,76.30°,  1h 25.2m,   53h 57.3m +/- 04.8m,4.0°
 Kerbin,ORS,   89,1.20, 724.506 +/- 0.74 km,1324.506 km,76.35°,  1h 24.9m,   62h 58.4m +/- 03.1m,4.0°

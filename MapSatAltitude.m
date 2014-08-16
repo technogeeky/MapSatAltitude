@@ -692,7 +692,7 @@ switch (argv_style)
 	case 'csv'
 		disp('Scanner,UEQx,Sidelap,Altitude,AltitudeError,Inclination,OrbitalPeriod,ScanTime,ScanTimeError,EffFOV,SwathWidth,ResolutionDeg,ResolutionMeter');
 	case 'csv-github'
-		disp('Planet,Scanner,UEQx,Sidelap,Altitude,Inclination,OrbitalPeriod,ScanTime,EffFOV');
+		disp('Planet,Scanner,UEQx,Sidelap,Altitude,SMA,Inclination,OrbitalPeriod,ScanTime,EffFOV');
 	case 'markdown'
 		disp(' UEQx|Sidelap| Altitude |    Error  | Inc.    | O. Period| Scan Time |    Error| FOV  |Swath|Res (°)|Res (m)');
 		disp('-----|-------|----------|-----------|---------|----------|-----------|---------|------|-----|-------|--------');
@@ -826,8 +826,8 @@ for i = flipdim(1:length(zoneStart),2)
 			qqq = [qqq sprintf(',%s',		ScannerName)];			% this is different
 			qqq = [qqq sprintf(',%5d',		orbitRatD(minalti))];
 			qqq = [qqq sprintf(',%4.2f',		orbitRatD(minalti)./idealThreshold(minalti))];
-		       %qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
 			qqq = [qqq sprintf(',%8.3f +/- %3.2f km',		meanta/1000,altRa/1000)];
+		        qqq = [qqq sprintf(',%7.3f km',		sma/1000)];
 		       %qqq = [qqq sprintf(',%8.3f km',		meanta/1000)];
 		       %qqq = [qqq sprintf(',%3.2f km',	altRa/1000)];
 			qqq = [qqq sprintf(',%03.2f°',	tgtInclination(altii))];
